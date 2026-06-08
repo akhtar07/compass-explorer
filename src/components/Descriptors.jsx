@@ -36,7 +36,7 @@ const D = [
 export default function Descriptors() {
   return (
     <div>
-      <p className="text-slate-400 text-sm mb-4 max-w-3xl">
+      <p className="text-[var(--dim)] text-sm mb-4 max-w-3xl">
         COMPASS uses twelve physically-motivated descriptors per binary pair (A, B). D₁–D₈ are
         orbital/Hume–Rothery descriptors from Harrison tight-binding theory and free-atom data;
         D₉–D₁₂ are first-principles bonding descriptors from DFT + LOBSTER (|ICOHP| and ICOBI).
@@ -46,16 +46,14 @@ export default function Descriptors() {
           <div key={d.id} className="card p-4">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg font-bold text-sky-300">{d.id}</span>
-              <span className="text-sm text-slate-200">{d.name}</span>
+              <span className="text-sm text-[var(--text)]">{d.name}</span>
               {d.bonding && <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300">DFT/LOBSTER</span>}
             </div>
-            <div className="font-mono text-[12px] text-emerald-300 bg-[#0c1426] rounded px-2 py-1 my-2 overflow-x-auto">{d.formula}</div>
-            <p className="text-xs text-slate-400 leading-relaxed">{d.desc}</p>
-            {d.img && (
-              <div className="bg-white rounded mt-2 p-1">
-                <img src={`./descr/${d.img}`} alt={`${d.id} formula`} className="w-full object-contain max-h-28" />
-              </div>
-            )}
+            <div className="rounded mt-1 mb-2 flex justify-center">
+              <img src={`./descr/${d.id}.png`} alt={`${d.id} schematic`} className="w-full object-contain max-h-32" />
+            </div>
+            <div className="font-mono text-[12px] text-emerald-300 bg-[var(--panel2)] rounded px-2 py-1 mb-2 overflow-x-auto">{d.formula}</div>
+            <p className="text-xs text-[var(--dim)] leading-relaxed">{d.desc}</p>
           </div>
         ))}
       </div>

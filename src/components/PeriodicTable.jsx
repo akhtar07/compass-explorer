@@ -41,11 +41,17 @@ export default function PeriodicTable({ elements, pairs, groups, labels }) {
       const t = norm(e[prop]); return { bg: viridis(t), fg: textOn(t) }
     }
     // classify mode
-    if (!selA) return { bg: e.has_data ? '#27314f' : '#161d33', fg: e.has_data ? '#dbe2f7' : '#5b6684' }
+    if (!selA) return { bg: e.has_data ? 'var(--cell-data)' : 'var(--cell)', fg: e.has_data ? 'var(--text)' : 'var(--dim)' }
     if (sym === selA) return { bg: '#0ea5e9', fg: '#04121f', ring: true }
     const pr = getPair(selA, sym)
-    if (pr) { const c = dominantClass(pr.truth); return { bg: CLASS_COLOR[c] || '#39405c', fg: '#0b1020' } }
-    return { bg: '#141a2e', fg: '#3c4663' }
+    if (pr) {
+      const labs = CLASSES.filter(c => pr.truth.includes(c))   // ordered iso,partial,immis,inter
+      if (labs.length <= 1) return { bg: CLASS_COLOR[labs[0]] || '#39405c', fg: '#0b1020' }
+      const n = labs.length
+      const stops = labs.map((c, i) => `${CLASS_COLOR[c]} ${(i*100/n).toFixed(1)}% ${((i+1)*100/n).toFixed(1)}%`).join(', ')
+      return { bg: `linear-gradient(135deg, ${stops})`, fg: '#0b1020' }
+    }
+    return { bg: 'var(--cell)', fg: 'var(--dim)' }
   }
 
   const selPair = (selA && selB) ? getPair(selA, selB) : null
@@ -55,10 +61,10 @@ export default function PeriodicTable({ elements, pairs, groups, labels }) {
     <div className="flex flex-col gap-4">
       {/* mode + controls */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex rounded-lg overflow-hidden border border-[#2a3350]">
+        <div className="flex rounded-lg overflow-hidden border border-[var(--border)]">
           {['classify', 'heatmap'].map(m => (
             <button key={m} onClick={() => { setMode(m); setSelA(null); setSelB(null) }}
-              className={`px-3 py-1.5 text-sm ${mode === m ? 'bg-sky-500/30 text-sky-200' : 'text-slate-400 hover:bg-white/5'}`}>
+              className={`px-3 py-1.5 text-sm ${mode === m ? 'bg-sky-500/30 text-sky-200' : 'text-[var(--dim)] hover:bg-white/5'}`}>
               {m === 'classify' ? 'Classify by element' : 'Property heatmap'}
             </button>
           ))}
@@ -66,37 +72,41 @@ export default function PeriodicTable({ elements, pairs, groups, labels }) {
         {mode === 'heatmap' ? (
           <>
             <select value={prop} onChange={e => setProp(e.target.value)}
-              className="bg-[#141b30] border border-[#2a3350] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-sky-500 min-w-[240px]">
+              className="bg-[var(--input)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-sky-500 min-w-[240px]">
               {Object.entries(groups).map(([g, arr]) => (
                 <optgroup key={g} label={g}>
                   {arr.map(p => <option key={p} value={p}>{prettyProp(p, labels)}</option>)}
                 </optgroup>
               ))}
             </select>
-            <div className="flex items-center gap-2 ml-auto text-xs text-slate-400">
+            <div className="flex items-center gap-2 ml-auto text-xs text-[var(--dim)]">
               <span>{Number.isFinite(min) ? fmt(min) : '–'}</span>
               <div className="h-3 w-36 rounded" style={{ background: `linear-gradient(90deg, ${[0,.25,.5,.75,1].map(viridis).join(',')})` }} />
               <span>{Number.isFinite(max) ? fmt(max) : '–'}</span>
             </div>
           </>
         ) : (
-          <div className="text-sm text-slate-300">
+          <div className="text-sm text-[var(--text)]">
             {!selA && <>Click an element to colour every other by its <b>binary phase behaviour</b> with it.</>}
-            {selA && !selB && <>Showing <b className="text-sky-300">{selA}</b>–X classification — click another element for the <b>{selA}–X phase diagram</b>. <button className="ml-2 underline text-slate-400" onClick={() => setSelA(null)}>reset</button></>}
-            {selA && selB && <><b className="text-sky-300">{selA}–{selB}</b> selected. <button className="ml-2 underline text-slate-400" onClick={() => { setSelA(null); setSelB(null) }}>reset</button></>}
+            {selA && !selB && <>Showing <b className="text-sky-300">{selA}</b>–X classification — click another element for the <b>{selA}–X phase diagram</b>. <button className="ml-2 underline text-[var(--dim)]" onClick={() => setSelA(null)}>reset</button></>}
+            {selA && selB && <><b className="text-sky-300">{selA}–{selB}</b> selected. <button className="ml-2 underline text-[var(--dim)]" onClick={() => { setSelA(null); setSelB(null) }}>reset</button></>}
           </div>
         )}
       </div>
 
       {/* legend (classify) */}
       {mode === 'classify' && (
-        <div className="flex flex-wrap gap-3 text-xs text-slate-300">
+        <div className="flex flex-wrap gap-3 text-xs text-[var(--text)]">
           {CLASSES.map(c => (
             <span key={c} className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded" style={{ background: CLASS_COLOR[c] }} /> {CLASS_LABEL[c]}
             </span>
           ))}
-          <span className="flex items-center gap-1.5 text-slate-500"><span className="w-3 h-3 rounded bg-[#141a2e]" /> no data</span>
+          <span className="flex items-center gap-1.5 text-[var(--dim)]"><span className="w-3 h-3 rounded bg-[var(--cell)]" /> no data</span>
+          <span className="flex items-center gap-1.5 text-[var(--dim)]">
+            <span className="w-3 h-3 rounded" style={{ background: `linear-gradient(135deg, ${CLASS_COLOR.partial} 0 50%, ${CLASS_COLOR.intermetallic} 50% 100%)` }} />
+            split = coexisting behaviours (e.g. partial + intermetallic)
+          </span>
         </div>
       )}
 
@@ -128,7 +138,7 @@ export default function PeriodicTable({ elements, pairs, groups, labels }) {
         <div className="mt-2"><PairDetail pair={selPair} allPairs={pairs} /></div>
       )}
       {mode === 'classify' && selA && !selB && (
-        <div className="card p-4 text-slate-400 text-sm">
+        <div className="card p-4 text-[var(--dim)] text-sm">
           Coloured cells are elements with a hand-verified <b>{selA}</b>–X phase diagram in the 610-pair set.
           Grey = no diagram for that combination. Click a coloured element to open its phase diagram, descriptors and prediction.
         </div>
@@ -136,7 +146,7 @@ export default function PeriodicTable({ elements, pairs, groups, labels }) {
       {mode === 'heatmap' && (
         <div className="card glow p-4 max-w-md">
           {detailEl ? <ElementCard e={detailEl} labels={labels} /> :
-            <div className="text-slate-400 text-sm">Hover an element for its properties; the table is coloured by <b>{prettyProp(prop, labels)}</b>.</div>}
+            <div className="text-[var(--dim)] text-sm">Hover an element for its properties; the table is coloured by <b>{prettyProp(prop, labels)}</b>.</div>}
         </div>
       )}
     </div>
@@ -154,13 +164,13 @@ function ElementCard({ e, labels }) {
     <div>
       <div className="flex items-baseline gap-2 mb-2">
         <span className="text-3xl font-bold">{e.symbol}</span>
-        <span className="text-slate-400 text-sm">Z={e.Z ?? '–'}</span>
+        <span className="text-[var(--dim)] text-sm">Z={e.Z ?? '–'}</span>
         {!e.has_data && <span className="ml-auto text-[10px] text-amber-500/80">no COMPASS descriptors</span>}
       </div>
       <table className="w-full text-xs"><tbody>
         {rows.map(([k, v]) => (
           <tr key={k} className="border-t border-[#222a44]">
-            <td className="py-1 text-slate-400">{k}</td>
+            <td className="py-1 text-[var(--dim)]">{k}</td>
             <td className="py-1 text-right font-mono">{fmt(v)}</td>
           </tr>
         ))}

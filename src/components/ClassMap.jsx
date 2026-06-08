@@ -30,7 +30,7 @@ export default function ClassMap({ pairs }) {
       <div className="flex items-end gap-3 flex-wrap">
         <Sel label="X axis" value={xD} onChange={setXD} />
         <Sel label="Y axis" value={yD} onChange={setYD} />
-        <div className="text-xs text-slate-400 ml-2">
+        <div className="text-xs text-[var(--dim)] ml-2">
           Points coloured by dominant hand-verified class (priority Inter &gt; Immis &gt; Partial &gt; Iso).
         </div>
       </div>
@@ -54,9 +54,9 @@ export default function ClassMap({ pairs }) {
 function Sel({ label, value, onChange }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs text-slate-400">{label}</label>
+      <label className="text-xs text-[var(--dim)]">{label}</label>
       <select value={value} onChange={e => onChange(e.target.value)}
-        className="bg-[#141b30] border border-[#2a3350] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+        className="bg-[var(--input)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
         {DOPTS.map(d => <option key={d} value={d}>{d}</option>)}
       </select>
     </div>

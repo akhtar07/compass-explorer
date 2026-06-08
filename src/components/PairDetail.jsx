@@ -9,7 +9,7 @@ ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, 
 const DL = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12']
 
 export default function PairDetail({ pair, allPairs }) {
-  const [invert, setInvert] = useState(true)
+  const [invert, setInvert] = useState(() => !document.documentElement.classList.contains('light'))
   const ranges = useMemo(() => {
     const r = {}
     DL.forEach(d => {
@@ -34,9 +34,9 @@ export default function PairDetail({ pair, allPairs }) {
       {/* phase diagram */}
       <div className="card glow p-4 lg:col-span-1">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm uppercase tracking-wide text-slate-400">{pair.A}–{pair.B} phase diagram</h3>
+          <h3 className="text-sm uppercase tracking-wide text-[var(--dim)]">{pair.A}–{pair.B} phase diagram</h3>
           <button onClick={() => setInvert(v => !v)}
-            className="text-[11px] px-2 py-1 rounded bg-[#1c2440] hover:bg-[#26305a] text-slate-300">
+            className="text-[11px] px-2 py-1 rounded bg-[var(--panel2)] hover:bg-[var(--panel2)] text-[var(--text)]">
             {invert ? 'dark' : 'original'}
           </button>
         </div>
@@ -50,7 +50,7 @@ export default function PairDetail({ pair, allPairs }) {
 
       {/* prediction */}
       <div className="card glow p-4">
-        <h3 className="text-sm uppercase tracking-wide text-slate-400 mb-3">Phase behaviour</h3>
+        <h3 className="text-sm uppercase tracking-wide text-[var(--dim)] mb-3">Phase behaviour</h3>
         <Block title="Hand-verified label(s)">
           {pair.truth.length ? pair.truth.map(c => <Chip key={c} c={c} solid />) : <Dash />}
         </Block>
@@ -61,7 +61,7 @@ export default function PairDetail({ pair, allPairs }) {
         {CLASSES.map(c => (
           <div key={c} className="flex items-center gap-2 mb-1">
             <span className="w-24 text-[11px]" style={{ color: CLASS_COLOR[c] }}>{CLASS_LABEL[c]}</span>
-            <div className="flex-1 h-2 rounded bg-[#1c2440] overflow-hidden">
+            <div className="flex-1 h-2 rounded bg-[var(--panel2)] overflow-hidden">
               <div className="h-full" style={{ width: `${(pair.prob[c] * 100).toFixed(0)}%`, background: CLASS_COLOR[c] }} />
             </div>
             <span className="w-9 text-right text-xs font-mono">{pair.prob[c].toFixed(2)}</span>
@@ -71,7 +71,7 @@ export default function PairDetail({ pair, allPairs }) {
 
       {/* radar */}
       <div className="card glow p-4">
-        <h3 className="text-sm uppercase tracking-wide text-slate-400 mb-1">Descriptors D1–D12</h3>
+        <h3 className="text-sm uppercase tracking-wide text-[var(--dim)] mb-1">Descriptors D1–D12</h3>
         <div className="text-[10px] text-slate-500 mb-2">normalized across the 610-pair set · see the Descriptors tab for definitions</div>
         <Radar data={radar} options={{
           scales: { r: { min: 0, max: 1, grid: { color: '#26304e' }, angleLines: { color: '#26304e' },
