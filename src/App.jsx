@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { Grid3x3, ArrowLeftRight, ScatterChart, UploadCloud, Compass } from 'lucide-react'
+import { Grid3x3, BookOpen, ScatterChart, UploadCloud, Compass } from 'lucide-react'
 import PeriodicTable from './components/PeriodicTable'
-import PairExplorer from './components/PairExplorer'
+import Descriptors from './components/Descriptors'
 import ClassMap from './components/ClassMap'
 import Upload from './components/Upload'
 
 const TABS = [
   { id: 'pt', label: 'Periodic Table', icon: Grid3x3 },
-  { id: 'pair', label: 'Pair Explorer', icon: ArrowLeftRight },
+  { id: 'desc', label: 'Descriptors', icon: BookOpen },
   { id: 'map', label: 'Classification Map', icon: ScatterChart },
   { id: 'upload', label: 'Upload Diagram', icon: UploadCloud },
 ]
@@ -16,18 +16,20 @@ export default function App() {
   const [tab, setTab] = useState('pt')
   const [elements, setElements] = useState(null)
   const [groups, setGroups] = useState(null)
+  const [labels, setLabels] = useState(null)
   const [pairs, setPairs] = useState(null)
 
   useEffect(() => {
     Promise.all([
       fetch('./data/elements.json').then(r => r.json()),
       fetch('./data/property_groups.json').then(r => r.json()),
+      fetch('./data/prop_labels.json').then(r => r.json()),
       fetch('./data/pairs.json').then(r => r.json()),
-    ]).then(([e, g, p]) => { setElements(e); setGroups(g); setPairs(p) })
+    ]).then(([e, g, l, p]) => { setElements(e); setGroups(g); setLabels(l); setPairs(p) })
       .catch(err => console.error('data load failed', err))
   }, [])
 
-  const ready = elements && groups && pairs
+  const ready = elements && groups && pairs && labels
 
   return (
     <div className="min-h-full">
@@ -37,7 +39,7 @@ export default function App() {
           <div>
             <div className="font-semibold text-lg leading-tight">COMPASS</div>
             <div className="text-[11px] text-slate-400 leading-tight">
-              Orbital + bonding descriptors for binary-alloy phase behaviour · 48 elements · 610 hand-verified pairs
+              Orbital + bonding descriptors for binary-alloy phase behaviour · 610 hand-verified pairs
             </div>
           </div>
           <nav className="ml-auto flex gap-1">
@@ -60,8 +62,8 @@ export default function App() {
           <div className="text-slate-400 py-20 text-center">Loading data…</div>
         ) : (
           <>
-            {tab === 'pt' && <PeriodicTable elements={elements} groups={groups} />}
-            {tab === 'pair' && <PairExplorer elements={elements} pairs={pairs} />}
+            {tab === 'pt' && <PeriodicTable elements={elements} pairs={pairs} groups={groups} labels={labels} />}
+            {tab === 'desc' && <Descriptors />}
             {tab === 'map' && <ClassMap pairs={pairs} />}
             {tab === 'upload' && <Upload />}
           </>
@@ -69,8 +71,8 @@ export default function App() {
       </main>
 
       <footer className="max-w-[1400px] mx-auto px-5 py-6 text-xs text-slate-500 border-t border-[#1c2440] mt-8">
-        COMPASS Explorer · descriptors D1–D12 (Harrison tight-binding + DFT/LOBSTER) · predictions are precomputed
-        out-of-fold (XGBoost, D1–D12). Built with React + Vite.
+        COMPASS Explorer · D1–D12 (Harrison tight-binding + DFT/LOBSTER) · heatmap properties from our descriptors,
+        MAGPIE and JARVIS-DFT · predictions precomputed out-of-fold (XGBoost). Built with React + Vite.
       </footer>
     </div>
   )
