@@ -41,3 +41,23 @@ export function fmt(v) {
   if (typeof v !== 'number') return v
   return Math.abs(v) >= 1000 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(3)
 }
+
+// ground-state crystal structure from space-group number (text-colour encoding)
+export function sgToStructure(sg) {
+  if (sg == null || isNaN(sg)) return null
+  const m = {
+    225: 'FCC', 229: 'BCC', 194: 'HCP', 227: 'Diamond', 166: 'Rhombohedral',
+    139: 'Tetragonal', 141: 'Tetragonal', 136: 'Tetragonal', 64: 'Orthorhombic',
+    63: 'Orthorhombic', 152: 'Trigonal', 154: 'Trigonal', 217: 'α-Mn',
+    221: 'Simple cubic', 191: 'Hexagonal', 12: 'Monoclinic', 70: 'Orthorhombic',
+  }
+  return m[Math.round(sg)] || 'Other'
+}
+// text colours chosen distinct from the four phase-box hues (green/orange/red/blue)
+export const STRUCT_COLOR = {
+  FCC: '#e879f9', BCC: '#22d3ee', HCP: '#fde047', Diamond: '#f8fafc',
+  Rhombohedral: '#c084fc', Tetragonal: '#5eead4', Orthorhombic: '#fb7185',
+  Trigonal: '#a5f3fc', 'α-Mn': '#bef264', 'Simple cubic': '#fca5a5',
+  Hexagonal: '#fde047', Monoclinic: '#fdba74', Other: '#cbd5e1',
+}
+export const STRUCT_ORDER = ['FCC','BCC','HCP','Diamond','Rhombohedral','Tetragonal','Orthorhombic','Trigonal','Other']

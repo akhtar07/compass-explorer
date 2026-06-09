@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
-import { viridis, textOn, prettyProp, fmt, CLASSES, CLASS_COLOR, CLASS_LABEL, dominantClass } from '../lib/util'
+import { viridis, textOn, prettyProp, fmt, CLASSES, CLASS_COLOR, CLASS_LABEL, dominantClass,
+         sgToStructure, STRUCT_COLOR, STRUCT_ORDER } from '../lib/util'
 import PairDetail from './PairDetail'
 
 export default function PeriodicTable({ elements, pairs, groups, labels }) {
@@ -114,16 +115,18 @@ export default function PeriodicTable({ elements, pairs, groups, labels }) {
       <div className="grid gap-[4px] overflow-x-auto pb-1" style={{ gridTemplateColumns: 'repeat(18, minmax(34px,1fr))' }}>
         {cells.map(e => {
           const st = cellStyle(e)
+          const struct = sgToStructure(e['MAGPIE_SpaceGroupNumber'])
+          const symColor = struct ? STRUCT_COLOR[struct] : st.fg
           return (
             <div key={e.symbol} className="elem-cell rounded-md p-1 select-none text-center"
               style={{ gridColumn: e.col, gridRow: e.row, background: st.bg,
                        outline: st.ring ? '2px solid #bae6fd' : 'none' }}
               onMouseEnter={() => setHover(e.symbol)} onMouseLeave={() => setHover(null)}
               onClick={() => clickCell(e.symbol)}
-              title={mode === 'classify' && selA && getPair(selA, e.symbol)
-                ? `${selA}-${e.symbol}: ${getPair(selA, e.symbol).truth.join(', ') || '—'}` : e.symbol}>
+              title={`${e.symbol}${struct ? ' · ' + struct : ''}${mode === 'classify' && selA && getPair(selA, e.symbol) ? ` · ${selA}-${e.symbol}: ${getPair(selA, e.symbol).truth.join(', ') || '—'}` : ''}`}>
               <div className="text-[8px] leading-none" style={{ color: st.fg, opacity: .8 }}>{e.Z ?? ''}</div>
-              <div className="font-semibold text-[12px] leading-tight" style={{ color: st.fg }}>{e.symbol}</div>
+              <div className="font-semibold text-[12px] leading-tight"
+                   style={{ color: symColor, textShadow: '0 0 2px rgba(0,0,0,.85), 0 1px 1px rgba(0,0,0,.6)' }}>{e.symbol}</div>
               {mode === 'heatmap' && <div className="text-[7px] leading-none" style={{ color: st.fg }}>{fmt(e[prop])}</div>}
             </div>
           )
@@ -131,6 +134,14 @@ export default function PeriodicTable({ elements, pairs, groups, labels }) {
         {/* f-block spacer label */}
         <div style={{ gridColumn: 3, gridRow: 6 }} className="rounded-md flex items-center justify-center text-[8px] text-slate-600">57–71</div>
         <div style={{ gridColumn: 3, gridRow: 7 }} className="rounded-md flex items-center justify-center text-[8px] text-slate-600">89–103</div>
+      </div>
+
+      {/* structure legend (symbol text colour) */}
+      <div className="flex flex-wrap items-center gap-3 text-[11px] text-[var(--dim)]">
+        <span className="uppercase tracking-wide">Symbol colour = ground-state structure:</span>
+        {STRUCT_ORDER.map(s => (
+          <span key={s} className="font-semibold" style={{ color: STRUCT_COLOR[s], textShadow: '0 0 2px rgba(0,0,0,.7)' }}>{s}</span>
+        ))}
       </div>
 
       {/* detail area */}
