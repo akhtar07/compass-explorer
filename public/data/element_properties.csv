@@ -1,0 +1,119 @@
+Z,Element,Symbol,UTS_MPa,Price_USD_per_kg,Price_Year,UTS_Note,Price_Note
+1,Hydrogen,H,,1.39,2012,Gas at RT,
+2,Helium,He,,24.0,2018,Gas at RT,
+3,Lithium,Li,1.5,83.5,2020,,avg of 81.4-85.6
+4,Beryllium,Be,345,857,2020,,
+5,Boron,B,,3.68,2019,Brittle; no UTS,
+6,Carbon,C,15,0.122,2018,Graphite,
+7,Nitrogen,N,,0.14,2001,Gas at RT,
+8,Oxygen,O,,0.154,2001,Gas at RT,
+9,Fluorine,F,,2.0,2017,Gas at RT,avg of 1.84-2.16
+10,Neon,Ne,,240,1999,Gas at RT,
+11,Sodium,Na,,3.0,2020,Too soft/reactive,avg of 2.57-3.43
+12,Magnesium,Mg,200,2.32,2019,,
+13,Aluminium,Al,90,1.79,2019,Pure annealed,
+14,Silicon,Si,170,1.70,2019,Brittle semiconductor,
+15,Phosphorus,P,,2.69,2019,Brittle; no UTS,
+16,Sulfur,S,,0.093,2019,Brittle solid,
+17,Chlorine,Cl,,0.082,2013,Gas at RT,
+18,Argon,Ar,,0.931,2019,Gas at RT,
+19,Potassium,K,,12.85,2020,Too soft/reactive,avg of 12.1-13.6
+20,Calcium,Ca,110,2.28,2020,,avg of 2.21-2.35
+21,Scandium,Sc,200,3460,2020,,
+22,Titanium,Ti,343,11.4,2020,alpha-Ti pure,avg of 11.1-11.7
+23,Vanadium,V,800,371,2020,,avg of 357-385
+24,Chromium,Cr,550,9.40,2019,Brittle at RT,
+25,Manganese,Mn,650,1.82,2019,Brittle,
+26,Iron,Fe,540,0.424,2020,alpha-Fe pure annealed,
+27,Cobalt,Co,800,32.8,2019,,
+28,Nickel,Ni,345,13.9,2019,,
+29,Copper,Cu,210,6.00,2019,,
+30,Zinc,Zn,90,2.55,2019,,
+31,Gallium,Ga,15,148,2019,Near-liquid (MP 29.8 C),
+32,Germanium,Ge,135,962,2020,Brittle semiconductor,avg of 914-1010
+33,Arsenic,As,,1.15,2020,Brittle metalloid,avg of 0.999-1.31
+34,Selenium,Se,300,21.4,2019,,
+35,Bromine,Br,,4.39,2019,Liquid at RT,
+36,Krypton,Kr,,290,1999,Gas at RT,
+37,Rubidium,Rb,,15500,2018,Too soft/reactive,
+38,Strontium,Sr,,6.605,2019,No reliable UTS,avg of 6.53-6.68
+39,Yttrium,Y,115,31.0,2019,,
+40,Zirconium,Zr,330,36.4,2020,alpha-Zr,avg of 35.7-37.1
+41,Niobium,Nb,275,73.5,2020,,avg of 61.4-85.6
+42,Molybdenum,Mo,324,40.1,2019,,
+43,Technetium,Tc,,100000,2004,Radioactive; no bulk test,
+44,Ruthenium,Ru,370,10500,2020,,avg of 10400-10600
+45,Rhodium,Rh,950,147000,2019,,
+46,Palladium,Pd,135,49500,2019,,
+47,Silver,Ag,110,521,2019,,
+48,Cadmium,Cd,75,2.73,2019,,
+49,Indium,In,2.5,167,2019,,
+50,Tin,Sn,220,18.7,2019,beta-Sn white tin,
+51,Antimony,Sb,11,5.79,2019,Brittle,
+52,Tellurium,Te,11,63.5,2019,Brittle metalloid,
+53,Iodine,I,,35,2019,Brittle solid; no UTS,
+54,Xenon,Xe,,1800,1999,Gas at RT,
+55,Caesium,Cs,,61800,2018,Near-liquid (MP 28.5 C),
+56,Barium,Ba,,0.2605,2016,No reliable UTS,avg of 0.246-0.275
+57,Lanthanum,La,130,4.85,2020,,avg of 4.78-4.92
+58,Cerium,Ce,100,4.64,2020,,avg of 4.57-4.71
+59,Praseodymium,Pr,110,103,2019,,
+60,Neodymium,Nd,155,57.5,2019,,
+61,Promethium,Pm,160,460000,2003,ESTIMATED by interpolation - never measured,
+62,Samarium,Sm,124,13.9,2019,,
+63,Europium,Eu,120,31.4,2020,,
+64,Gadolinium,Gd,170,28.6,2020,,
+65,Terbium,Tb,,658,2019,No UTS in literature,
+66,Dysprosium,Dy,220,307,2019,,
+67,Holmium,Ho,260,57.1,2020,,
+68,Erbium,Er,260,26.4,2020,,
+69,Thulium,Tm,,3000,2003,No UTS in literature,
+70,Ytterbium,Yb,69,17.1,2020,,
+71,Lutetium,Lu,,643,2020,No UTS in literature,
+72,Hafnium,Hf,480,900,2017,,
+73,Tantalum,Ta,760,305,2019,,avg of 298-312
+74,Tungsten,W,980,35.3,2019,,
+75,Rhenium,Re,1070,3580,2020,,avg of 3010-4150
+76,Osmium,Os,1000,30000,2025,Brittle; fracture stress,
+77,Iridium,Ir,2000,144000,2025,Brittle; fracture stress,
+78,Platinum,Pt,150,27800,2019,,
+79,Gold,Au,220,75430,2024,,
+80,Mercury,Hg,,30.2,2017,Liquid at RT,
+81,Thallium,Tl,8,4200,2017,,
+82,Lead,Pb,17,2.00,2019,,
+83,Bismuth,Bi,4,6.36,2019,Extremely brittle,
+84,Polonium,Po,,,Radioactive; no bulk test,not traded
+85,Astatine,At,,,Radioactive halogen,not traded
+86,Radon,Rn,,,Radioactive gas,not traded
+87,Francium,Fr,,,Radioactive,not traded
+88,Radium,Ra,,,Radioactive,not traded
+89,Actinium,Ac,,,Radioactive,not traded
+90,Thorium,Th,220,287,2010,,
+91,Protactinium,Pa,,,Radioactive,no reliable price
+92,Uranium,U,390,101,2018,alpha-U,
+93,Neptunium,Np,,,660000,2003,Radioactive,
+94,Plutonium,Pu,,,6490000,2019,Radioactive,
+95,Americium,Am,,,728000,1998,Radioactive,
+96,Curium,Cm,,,185000000,2004,Radioactive,
+97,Berkelium,Bk,,,not traded,,
+98,Californium,Cf,,,not traded,,
+99,Einsteinium,Es,,,not traded,,
+100,Fermium,Fm,,,not traded,,
+101,Mendelevium,Md,,,not traded,,
+102,Nobelium,No,,,not traded,,
+103,Lawrencium,Lr,,,not traded,,
+104,Rutherfordium,Rf,,,not traded,,
+105,Dubnium,Db,,,not traded,,
+106,Seaborgium,Sg,,,not traded,,
+107,Bohrium,Bh,,,not traded,,
+108,Hassium,Hs,,,not traded,,
+109,Meitnerium,Mt,,,not traded,,
+110,Darmstadtium,Ds,,,not traded,,
+111,Roentgenium,Rg,,,not traded,,
+112,Copernicium,Cn,,,not traded,,
+113,Nihonium,Nh,,,not traded,,
+114,Flerovium,Fl,,,not traded,,
+115,Moscovium,Mc,,,not traded,,
+116,Livermorium,Lv,,,not traded,,
+117,Tennessine,Ts,,,not traded,,
+118,Oganesson,Og,,,not traded,,
