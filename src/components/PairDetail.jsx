@@ -6,7 +6,7 @@ import {
 import { CLASSES, CLASS_COLOR, CLASS_LABEL } from '../lib/util'
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
-const DL = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12']
+const DL = ['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D11','D12','D13']
 
 export default function PairDetail({ pair, allPairs }) {
   const [invert, setInvert] = useState(() => !document.documentElement.classList.contains('light'))
@@ -54,7 +54,7 @@ export default function PairDetail({ pair, allPairs }) {
         <Block title="Hand-verified label(s)">
           {pair.truth.length ? pair.truth.map(c => <Chip key={c} c={c} solid />) : <Dash />}
         </Block>
-        <Block title="COMPASS-12 prediction">
+        <Block title="COMPASS-13 prediction">
           {pair.pred.length ? pair.pred.map(c => <Chip key={c} c={c} />) : <span className="text-slate-500 text-sm">none above threshold</span>}
         </Block>
         <div className="text-xs text-slate-500 mb-1 mt-3">Per-class probability</div>
@@ -71,7 +71,7 @@ export default function PairDetail({ pair, allPairs }) {
 
       {/* radar */}
       <div className="card glow p-4">
-        <h3 className="text-sm uppercase tracking-wide text-[var(--dim)] mb-1">Descriptors D1–D12</h3>
+        <h3 className="text-sm uppercase tracking-wide text-[var(--dim)] mb-1">Descriptors D1–D13</h3>
         <div className="text-[10px] text-slate-500 mb-2">normalized across the 610-pair set · see the Descriptors tab for definitions</div>
         <Radar data={radar} options={{
           scales: { r: { min: 0, max: 1, grid: { color: '#26304e' }, angleLines: { color: '#26304e' },

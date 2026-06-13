@@ -31,15 +31,19 @@ const D = [
     desc:'Geometric mean of the elemental Crystal-Orbital Bond Indices — the electron-sharing (covalency) scale. Top predictor of the immiscible class.' },
   { id:'D12', name:'Bond-order mismatch', formula:'D₁₂ = |ICOBI_A − ICOBI_B|', bonding:true,
     desc:'Absolute difference in elemental bond order between A and B.' },
+  { id:'D13', name:'Periodic-group distance', noimg:true,
+    formula:'D₁₃ = |G_A − G_B|',
+    desc:'Absolute difference in periodic-table group (column) number between A and B — a cheap, DFT-free measure of valence-count separation. Added on top of D₁–D₁₂; raised macro-F1 0.750 → 0.788.' },
 ]
 
 export default function Descriptors() {
   return (
     <div>
       <p className="text-[var(--dim)] text-sm mb-4 max-w-3xl">
-        COMPASS uses twelve physically-motivated descriptors per binary pair (A, B). D₁–D₈ are
+        COMPASS uses thirteen physically-motivated descriptors per binary pair (A, B). D₁–D₈ are
         orbital/Hume–Rothery descriptors from Harrison tight-binding theory and free-atom data;
-        D₉–D₁₂ are first-principles bonding descriptors from DFT + LOBSTER (|ICOHP| and ICOBI).
+        D₉–D₁₂ are first-principles bonding descriptors from DFT + LOBSTER (|ICOHP| and ICOBI);
+        D₁₃ is a cheap periodic-group descriptor.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {D.map(d => (
@@ -49,9 +53,11 @@ export default function Descriptors() {
               <span className="text-sm text-[var(--text)]">{d.name}</span>
               {d.bonding && <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300">DFT/LOBSTER</span>}
             </div>
-            <div className="rounded mt-1 mb-2 flex justify-center">
-              <img src={`./descr/${d.id}.png`} alt={`${d.id} schematic`} className="w-full object-contain max-h-32" />
-            </div>
+            {!d.noimg && (
+              <div className="rounded mt-1 mb-2 flex justify-center">
+                <img src={`./descr/${d.id}.png`} alt={`${d.id} schematic`} className="w-full object-contain max-h-32" />
+              </div>
+            )}
             <div className="font-mono text-[12px] text-emerald-300 bg-[var(--panel2)] rounded px-2 py-1 mb-2 overflow-x-auto">{d.formula}</div>
             <p className="text-xs text-[var(--dim)] leading-relaxed">{d.desc}</p>
           </div>

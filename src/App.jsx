@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { Grid3x3, BookOpen, ScatterChart, UploadCloud, Compass, Sun, Moon } from 'lucide-react'
+import { Grid3x3, BookOpen, ScatterChart, UploadCloud, Compass, Sun, Moon, Search, LineChart } from 'lucide-react'
 import PeriodicTable from './components/PeriodicTable'
 import Descriptors from './components/Descriptors'
 import ClassMap from './components/ClassMap'
 import Upload from './components/Upload'
+import Selector from './components/Selector'
+import AshbyChart from './components/AshbyChart'
 
 const TABS = [
+  { id: 'select', label: 'Selector', icon: Search },
   { id: 'pt', label: 'Periodic Table', icon: Grid3x3 },
   { id: 'desc', label: 'Descriptors', icon: BookOpen },
   { id: 'map', label: 'Classification Map', icon: ScatterChart },
+  { id: 'ashby', label: 'Ashby Chart', icon: LineChart },
   { id: 'upload', label: 'Upload Diagram', icon: UploadCloud },
 ]
 
@@ -23,6 +27,7 @@ export default function App() {
   const [groups, setGroups] = useState(null)
   const [labels, setLabels] = useState(null)
   const [pairs, setPairs] = useState(null)
+  const [axes, setAxes] = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -30,11 +35,12 @@ export default function App() {
       fetch('./data/property_groups.json').then(r => r.json()),
       fetch('./data/prop_labels.json').then(r => r.json()),
       fetch('./data/pairs.json').then(r => r.json()),
-    ]).then(([e, g, l, p]) => { setElements(e); setGroups(g); setLabels(l); setPairs(p) })
+      fetch('./data/property_axes.json').then(r => r.json()),
+    ]).then(([e, g, l, p, a]) => { setElements(e); setGroups(g); setLabels(l); setPairs(p); setAxes(a) })
       .catch(err => console.error('data load failed', err))
   }, [])
 
-  const ready = elements && groups && pairs && labels
+  const ready = elements && groups && pairs && labels && axes
 
   return (
     <div className="min-h-full">
@@ -72,9 +78,11 @@ export default function App() {
           <div className="text-[var(--dim)] py-20 text-center">Loading data…</div>
         ) : (
           <>
+            {tab === 'select' && <Selector pairs={pairs} elements={elements} axes={axes} />}
             {tab === 'pt' && <PeriodicTable elements={elements} pairs={pairs} groups={groups} labels={labels} />}
             {tab === 'desc' && <Descriptors />}
             {tab === 'map' && <ClassMap pairs={pairs} />}
+            {tab === 'ashby' && <AshbyChart elements={elements} axes={axes} />}
             {tab === 'upload' && <Upload />}
           </>
         )}

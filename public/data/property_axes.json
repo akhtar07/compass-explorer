@@ -1,0 +1,37 @@
+{
+  "density": {
+    "label": "Density",
+    "unit": "g/cm\u00b3",
+    "log": false
+  },
+  "youngs_modulus_GPa": {
+    "label": "Young\u2019s modulus",
+    "unit": "GPa",
+    "log": true
+  },
+  "specific_stiffness": {
+    "label": "Specific stiffness E/\u03c1",
+    "unit": "GPa\u00b7cm\u00b3/g",
+    "log": true
+  },
+  "JARVIS_therm_cond": {
+    "label": "Thermal conductivity",
+    "unit": "W/m\u00b7K",
+    "log": true
+  },
+  "JARVIS_mp": {
+    "label": "Melting point",
+    "unit": "K",
+    "log": false
+  },
+  "UTS_MPa": {
+    "label": "Tensile strength (UTS)",
+    "unit": "MPa",
+    "log": true
+  },
+  "Price_USD_kg": {
+    "label": "Price",
+    "unit": "USD/kg",
+    "log": true
+  }
+}
