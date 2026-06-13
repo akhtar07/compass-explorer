@@ -44,7 +44,7 @@ export default function App() {
           <div>
             <div className="font-semibold text-lg leading-tight">COMPASS</div>
             <div className="text-[11px] text-[var(--dim)] leading-tight">
-              Orbital + bonding descriptors for binary-alloy phase behaviour · 610 hand-verified pairs
+              Computational Orbital-Mechanics Predictive Alloy Screening System · 610 hand-verified pairs
             </div>
           </div>
           <nav className="ml-auto flex gap-1">
@@ -81,8 +81,10 @@ export default function App() {
       </main>
 
       <footer className="max-w-[1400px] mx-auto px-5 py-6 text-xs text-slate-500 border-t border-[var(--panel2)] mt-8">
-        COMPASS Explorer · D1–D12 (Harrison tight-binding + DFT/LOBSTER) · heatmap properties from our descriptors,
-        MAGPIE and JARVIS-DFT · predictions precomputed out-of-fold (XGBoost). Built with React + Vite.
+        COMPASS · <span className="italic">Computational Orbital-Mechanics Predictive Alloy Screening System</span> ·
+        Layer 1: pre-DFT orbital descriptors from free-atom data (Harrison tight-binding) ·
+        Layer 2: DFT+LOBSTER mixing enthalpies &amp; ICOHP bonding maps ·
+        610 hand-verified pairs · predictions precomputed out-of-fold (XGBoost) · Built with React + Vite.
       </footer>
     </div>
   )
