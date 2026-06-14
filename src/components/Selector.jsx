@@ -1,95 +1,77 @@
 import React, { useMemo, useState } from 'react'
-import { Search, X, ArrowLeft, Atom, FlaskConical, Boxes, Gem } from 'lucide-react'
-import { CLASSES, CLASS_COLOR, CLASS_LABEL } from '../lib/util'
+import { Search, X, ArrowLeft, Atom, FlaskConical, Boxes, Gem, Sparkles, SlidersHorizontal } from 'lucide-react'
+import { CLASSES, CLASS_COLOR, CLASS_LABEL, dominantClass } from '../lib/util'
 import PairDetail from './PairDetail'
 
-// ONE-STOP SEARCH. Type anything — an element ("La" / "lanthanum"), a pair
-// ("Al-La"), a phase behaviour ("immiscible", "forms compounds"), a property
-// need ("light and stiff, cheap"), or a compound formula ("AlAg2") — and get
-// ranked rich cards (truth class + MAGPIE prediction + multi-source DFT badges
-// + phase thumbnail). Click a card for the full PairDetail. The parser is
-// deterministic (no API key); it layers every recognised intent additively
-// rather than forcing one interpretation.
+// ONE-STOP EXPLORER. A single instant-search box understands an element
+// ("La" / "lanthanum"), a pair ("Al-La"), a phase behaviour ("immiscible",
+// "forms compounds"), a property need ("light and stiff, cheap"), or a compound
+// formula ("AlAg2"). Layer that with click-to-toggle phase facets, a "forms
+// compounds" filter and live sorting. Results are rich animated cards (verified
+// class + MAGPIE probabilities + multi-source DFT badges + thumbnail); click one
+// for the full PairDetail. Deterministic parser — no API key required.
 
 const PROP_SYN = {
-  density:           { high: ['dense', 'heavy', 'high density'], low: ['light', 'lightweight', 'low density'] },
-  youngs_modulus_GPa:{ high: ['stiff', 'rigid', 'high modulus', 'high stiffness'], low: ['compliant', 'flexible'] },
-  specific_stiffness:{ high: ['specific stiffness', 'stiffness-to-weight', 'light and stiff'], low: [] },
-  JARVIS_therm_cond: { high: ['conductive', 'high thermal', 'heat conducting', 'thermally conductive'], low: ['insulating', 'low thermal'] },
-  JARVIS_mp:         { high: ['refractory', 'high melting', 'high temperature', 'heat resistant'], low: ['low melting', 'fusible'] },
-  UTS_MPa:           { high: ['strong', 'high strength', 'tough'], low: ['weak', 'low strength'] },
-  Price_USD_kg:      { high: ['expensive', 'precious'], low: ['cheap', 'low cost', 'inexpensive', 'affordable', 'low price'] },
+  density:           { high: ['dense', 'heavy', 'high density'], low: ['light', 'lightweight', 'low density'], lab: 'density' },
+  youngs_modulus_GPa:{ high: ['stiff', 'rigid', 'high modulus', 'high stiffness'], low: ['compliant', 'flexible'], lab: 'stiffness' },
+  specific_stiffness:{ high: ['specific stiffness', 'stiffness-to-weight', 'light and stiff'], low: [], lab: 'specific stiffness' },
+  JARVIS_therm_cond: { high: ['conductive', 'high thermal', 'heat conducting', 'thermally conductive'], low: ['insulating', 'low thermal'], lab: 'thermal cond.' },
+  JARVIS_mp:         { high: ['refractory', 'high melting', 'high temperature', 'heat resistant'], low: ['low melting', 'fusible'], lab: 'melting point' },
+  UTS_MPa:           { high: ['strong', 'high strength', 'tough'], low: ['weak', 'low strength'], lab: 'strength' },
+  Price_USD_kg:      { high: ['expensive', 'precious'], low: ['cheap', 'low cost', 'inexpensive', 'affordable', 'low price'], lab: 'price' },
 }
 const CLASS_SYN = {
   isomorphous:  ['isomorphous', 'solid solution', 'fully miscible', 'fully soluble', 'complete solubility'],
   partial:      ['partial', 'partially soluble', 'limited solubility'],
   immiscible:   ['immiscible', 'insoluble', 'phase separat', 'does not mix'],
-  intermetallic:['intermetallic', 'compound', 'ordered phase', 'line compound', 'forms compound'],
+  intermetallic:['intermetallic', 'ordered phase', 'line compound'],
 }
 
-// "AlAg2" -> ['Al','Ag'] ; ignores stoichiometric subscripts
 function formulaElements(tok, validSyms) {
-  const out = []
-  const re = /([A-Z][a-z]?)(\d*\.?\d*)/g
-  let m
+  const out = []; const re = /([A-Z][a-z]?)(\d*\.?\d*)/g; let m
   while ((m = re.exec(tok)) !== null) {
     if (validSyms.has(m[1]) && !out.includes(m[1])) out.push(m[1])
   }
   return out
 }
 
-function parseQuery(text, elements, axes, dft) {
+function parseQuery(text, elements) {
   const t = ' ' + text.toLowerCase() + ' '
   const validSyms = new Set(Object.keys(elements).filter(s => elements[s].has_data))
   const nameToSym = {}
-  for (const s of Object.keys(elements)) {
-    const nm = (elements[s].name || '').toLowerCase()
-    if (nm) nameToSym[nm] = s
-  }
+  for (const s of Object.keys(elements)) { const nm = (elements[s].name || '').toLowerCase(); if (nm) nameToSym[nm] = s }
 
-  // phase classes
   const classes = CLASSES.filter(c => CLASS_SYN[c].some(s => t.includes(s)))
-
-  // property preferences
   const prefs = {}
   for (const [axis, syn] of Object.entries(PROP_SYN)) {
     if (syn.high.some(s => s && t.includes(s))) prefs[axis] = 'high'
     else if (syn.low.some(s => s && t.includes(s))) prefs[axis] = 'low'
   }
+  const formsCompounds = /\b(forms? (a )?compound|forms? compounds|stable compound|intermetallic compound|has compounds|compound former)\b/.test(t)
 
-  // "forms compounds" intent (DFT-stable compounds exist)
-  const formsCompounds = /\b(forms? (a )?compound|forms? compounds|stable compound|intermetallic compound|has compounds)\b/.test(t)
-
-  // explicit elements: symbols as whole tokens, then element names
   const rawTokens = text.split(/[^A-Za-z0-9]+/).filter(Boolean)
   const els = []
   for (const tk of rawTokens) {
     const cap = tk.charAt(0).toUpperCase() + tk.slice(1).toLowerCase()
     if (validSyms.has(cap) && !els.includes(cap)) els.push(cap)
   }
-  for (const tk of rawTokens) {
-    const sym = nameToSym[tk.toLowerCase()]
-    if (sym && !els.includes(sym)) els.push(sym)
-  }
+  for (const tk of rawTokens) { const sym = nameToSym[tk.toLowerCase()]; if (sym && !els.includes(sym)) els.push(sym) }
 
-  // compound formula: a single CamelCase-with-digits token that decodes to >=2 valid symbols
   let formula = null, formulaEls = []
   for (const tk of rawTokens) {
     if (els.includes(tk)) continue
     const fe = formulaElements(tk, validSyms)
     if (fe.length >= 2 && /[a-z0-9]/.test(tk)) { formula = tk; formulaEls = fe; break }
   }
-
   return { classes, prefs, formsCompounds, els, formula, formulaEls, raw: text.trim() }
 }
 
-// Returns {score, reasons[]} or null if a hard filter rejects the pair.
-function scorePair(p, q, dft) {
+// non-class hard filters + soft property score; class filtering happens later
+function scoreBase(p, q, dft) {
   const reasons = []
   const setEls = new Set([p.A, p.B])
   const d = dft?.[p.pair]
 
-  // hard: explicit element(s) — 2 means a specific pair, 1 means "contains"
   if (q.formulaEls.length >= 2) {
     if (!q.formulaEls.every(e => setEls.has(e))) return null
     reasons.push(`compound ${q.formula}`)
@@ -100,105 +82,118 @@ function scorePair(p, q, dft) {
     if (!setEls.has(q.els[0])) return null
     reasons.push(`contains ${q.els[0]}`)
   }
-
-  // hard: phase class
-  if (q.classes.length) {
-    if (!q.classes.some(c => p.truth.includes(c))) return null
-    reasons.push(q.classes.filter(c => p.truth.includes(c)).map(c => CLASS_LABEL[c].toLowerCase()).join(' + '))
-  }
-
-  // hard: forms DFT-stable compounds
   if (q.formsCompounds) {
     if (!d || !(d.n_stable > 0)) return null
     reasons.push(`${d.n_stable} DFT-stable compound${d.n_stable !== 1 ? 's' : ''}`)
   }
-
-  // soft: property preferences over elemental bounds
   let score = 0
   for (const [axis, dir] of Object.entries(q.prefs)) {
-    const b = p.props?.[axis]
-    if (!b) continue
+    const b = p.props?.[axis]; if (!b) continue
     score += dir === 'high' ? b.max : -b.min
-    reasons.push(`${dir} ${axis.replace(/_GPa|_MPa|_USD_kg|JARVIS_/g, '').replace(/_/g, ' ')}`)
+    reasons.push(`${dir} ${PROP_SYN[axis].lab}`)
   }
-
-  // tie-breakers / generic relevance when no constraints given
-  const constrained = q.els.length || q.classes.length || q.formsCompounds || q.formula
-  if (!constrained) {
-    // generic: substring on pair name / compound formulas
+  const constrained = q.els.length || q.formsCompounds || q.formula || Object.keys(q.prefs).length || q.classes.length
+  if (!constrained && q.raw) {
     const needle = q.raw.toLowerCase()
-    if (needle && needle.length >= 1) {
-      const inPair = p.pair.toLowerCase().includes(needle)
-      const inComp = (d?.compounds || []).some(c => c.formula.toLowerCase().includes(needle))
-      if (!inPair && !inComp) return null
-      if (inComp) reasons.push('matches a compound')
-    }
+    const inPair = p.pair.toLowerCase().includes(needle)
+    const inComp = (d?.compounds || []).some(c => c.formula.toLowerCase().includes(needle))
+    if (!inPair && !inComp) return null
+    if (inComp && !inPair) reasons.push('matches a compound')
   }
-
   return { score, reasons, hasPref: Object.keys(q.prefs).length > 0, nStable: d?.n_stable || 0 }
+}
+
+function ProbBar({ prob }) {
+  if (!prob) return null
+  const total = CLASSES.reduce((s, c) => s + (prob[c] || 0), 0) || 1
+  return (
+    <div className="probbar mt-1" title={CLASSES.map(c => `${CLASS_LABEL[c]} ${(prob[c] * 100).toFixed(0)}%`).join('  ·  ')}>
+      {CLASSES.map(c => {
+        const w = (prob[c] || 0) / total * 100
+        return w > 0.5 ? <span key={c} style={{ width: `${w}%`, background: CLASS_COLOR[c] }} /> : null
+      })}
+    </div>
+  )
 }
 
 function DftBadges({ d }) {
   if (!d) return <span className="text-[11px] text-[var(--dim)]">no DFT link</span>
   return (
     <div className="flex flex-wrap gap-1 mt-1">
-      {d.n_stable > 0 && (
-        <span className="badge" style={{ background: '#10b98122', color: '#34d399' }}>
-          <Boxes size={11} /> {d.n_stable} stable
-        </span>
-      )}
-      {d.ground_state?.formula && (
-        <span className="badge" style={{ background: '#6366f122', color: '#a5b4fc' }}>
-          <Gem size={11} /> {d.ground_state.formula} ({d.ground_state.Ef} eV)
-        </span>
-      )}
-      {d.elastic?.young_GPa != null && (
-        <span className="badge" style={{ background: '#f59e0b22', color: '#fbbf24' }}>
-          E {Math.round(d.elastic.young_GPa)} GPa
-        </span>
-      )}
-      {d.sources?.length > 0 && (
-        <span className="badge" style={{ background: '#64748b22', color: '#cbd5e1' }}>
-          {d.sources.join(' · ')}
-        </span>
-      )}
+      {d.n_stable > 0 && <span className="badge" style={{ background: '#10b98122', color: '#34d399' }}><Boxes size={11} /> {d.n_stable} stable</span>}
+      {d.ground_state?.formula && <span className="badge" style={{ background: '#6366f122', color: '#a5b4fc' }}><Gem size={11} /> {d.ground_state.formula} ({d.ground_state.Ef} eV)</span>}
+      {d.elastic?.young_GPa != null && <span className="badge" style={{ background: '#f59e0b22', color: '#fbbf24' }}>E {Math.round(d.elastic.young_GPa)} GPa</span>}
+      {d.sources?.length > 0 && <span className="badge" style={{ background: '#64748b22', color: '#cbd5e1' }}>{d.sources.join(' · ')}</span>}
     </div>
   )
 }
 
+const SORTS = {
+  relevance: 'Best match',
+  stable:    'Most stable compounds',
+  name:      'Name (A→Z)',
+  hull:      'Deepest convex hull',
+}
+
 export default function Selector({ pairs, elements, axes, dft, onTab }) {
   const [text, setText] = useState('')
-  const [submitted, setSubmitted] = useState('')
-  const [open, setOpen] = useState(null) // selected pair object -> PairDetail
+  const [facets, setFacets] = useState(() => new Set()) // class facet toggles
+  const [formsOnly, setFormsOnly] = useState(false)
+  const [sort, setSort] = useState('relevance')
+  const [open, setOpen] = useState(null)
 
-  const q = useMemo(
-    () => submitted ? parseQuery(submitted, elements, axes, dft) : null,
-    [submitted, elements, axes, dft])
+  const q = useMemo(() => parseQuery(text, elements), [text, elements])
 
-  const results = useMemo(() => {
-    if (!q) return null
-    const scored = []
+  // stage 1: non-class filter + score
+  const base = useMemo(() => {
+    const out = []
     for (const p of pairs) {
-      const s = scorePair(p, q, dft)
-      if (s) scored.push({ p, ...s })
+      const eff = { ...q, formsCompounds: q.formsCompounds || formsOnly }
+      const s = scoreBase(p, eff, dft)
+      if (s) out.push({ p, ...s })
     }
-    scored.sort((a, b) =>
-      a.hasPref ? b.score - a.score
-      : b.nStable - a.nStable || a.p.pair.localeCompare(b.p.pair))
-    return scored
-  }, [q, pairs, dft])
+    return out
+  }, [pairs, q, dft, formsOnly])
 
-  const examples = [
-    'Al-La', 'immiscible with Fe', 'forms compounds, refractory and strong',
-    'cheap isomorphous system', 'light and stiff', 'AlAg2',
-  ]
+  // live class counts over the base (pre-class-facet) set
+  const classCounts = useMemo(() => {
+    const c = { isomorphous: 0, partial: 0, immiscible: 0, intermetallic: 0 }
+    base.forEach(({ p }) => p.truth.forEach(t => { if (c[t] != null) c[t]++ }))
+    return c
+  }, [base])
 
-  // detail view
+  // stage 2: apply class facets (parsed classes + toggled facets), then sort
+  const results = useMemo(() => {
+    const eff = new Set([...facets, ...q.classes])
+    let r = eff.size ? base.filter(({ p }) => p.truth.some(t => eff.has(t))) : base.slice()
+    const hull = pr => dft?.[pr.pair]?.min_hull
+    r.sort((a, b) => {
+      if (sort === 'name') return a.p.pair.localeCompare(b.p.pair)
+      if (sort === 'stable') return b.nStable - a.nStable || a.p.pair.localeCompare(b.p.pair)
+      if (sort === 'hull') return (hull(a.p) ?? 1) - (hull(b.p) ?? 1) || a.p.pair.localeCompare(b.p.pair)
+      // relevance: property score if any, else stable-rich then name
+      return a.hasPref ? b.score - a.score : (b.nStable - a.nStable || a.p.pair.localeCompare(b.p.pair))
+    })
+    return r
+  }, [base, facets, q.classes, sort, dft])
+
+  const totalStable = useMemo(() => results.reduce((s, r) => s + r.nStable, 0), [results])
+  const resClassDist = useMemo(() => {
+    const c = { isomorphous: 0, partial: 0, immiscible: 0, intermetallic: 0 }
+    results.forEach(({ p }) => p.truth.forEach(t => { if (c[t] != null) c[t]++ }))
+    return c
+  }, [results])
+
+  const examples = ['Al-La', 'immiscible with Fe', 'forms compounds, refractory', 'light and stiff, cheap', 'AlAg2', 'Ti']
+
+  const toggleFacet = c => setFacets(prev => { const n = new Set(prev); n.has(c) ? n.delete(c) : n.add(c); return n })
+  const activeClasses = new Set([...facets, ...q.classes])
+  const anyFilter = text || facets.size || formsOnly
+
   if (open) {
     return (
-      <div className="flex flex-col gap-3">
-        <button onClick={() => setOpen(null)}
-          className="self-start flex items-center gap-2 text-sm text-[var(--dim)] hover:text-[var(--text)]">
+      <div className="flex flex-col gap-3 fade-up">
+        <button onClick={() => setOpen(null)} className="self-start flex items-center gap-2 text-sm text-[var(--dim)] hover:text-[var(--text)]">
           <ArrowLeft size={16} /> back to results
         </button>
         <PairDetail pair={open} allPairs={pairs} dft={dft} />
@@ -208,98 +203,125 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <form onSubmit={e => { e.preventDefault(); setSubmitted(text) }}
-        className="card glow p-4 flex flex-col gap-3">
-        <label className="text-sm text-[var(--dim)] flex items-center gap-2">
-          <Atom size={15} /> Search 970 binary systems — element, pair, phase behaviour, property, or compound formula
-        </label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--dim)]" />
-            <input value={text} onChange={e => setText(e.target.value)}
-              placeholder="e.g. Al-La · immiscible with Fe · forms compounds, refractory · AlAg2"
-              className="w-full bg-[var(--input)] border border-[var(--border)] rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-sky-500" />
-          </div>
-          <button type="submit"
-            className="px-4 py-2 rounded-lg bg-sky-500/20 text-sky-300 text-sm hover:bg-sky-500/30">
-            Search
-          </button>
-          {submitted && (
-            <button type="button" onClick={() => { setText(''); setSubmitted('') }}
-              className="px-3 py-2 rounded-lg text-[var(--dim)] hover:bg-white/5 text-sm flex items-center gap-1">
-              <X size={14} /> Clear
+      {/* hero */}
+      <div className="card glow hero-grad p-6 flex flex-col gap-3">
+        <div className="flex items-center gap-2 text-[var(--dim)] text-sm">
+          <Sparkles size={15} className="text-[var(--accent)]" /> One-stop binary-alloy explorer
+        </div>
+        <h2 className="text-2xl md:text-3xl font-extrabold leading-tight">
+          Search <span className="grad-text">970</span> verified systems — get <span className="grad-text">everything</span> in one place
+        </h2>
+        <div className="relative">
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--dim)]" />
+          <input autoFocus value={text} onChange={e => setText(e.target.value)}
+            placeholder="Element (La / lanthanum) · pair (Al-La) · behaviour (immiscible, forms compounds) · property (light, stiff, cheap) · formula (AlAg2)"
+            className="w-full bg-[var(--input)] border border-[var(--border)] rounded-xl pl-11 pr-10 py-3 text-base focus:outline-none focus:border-sky-500 shadow-sm" />
+          {text && (
+            <button onClick={() => setText('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--dim)] hover:text-[var(--text)]">
+              <X size={16} />
             </button>
           )}
         </div>
-        <div className="flex flex-wrap gap-2 text-xs">
+        <div className="flex flex-wrap gap-2 text-xs items-center">
           <span className="text-[var(--dim)]">Try:</span>
           {examples.map(ex => (
-            <button key={ex} type="button" onClick={() => { setText(ex); setSubmitted(ex) }}
-              className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-[var(--dim)]">{ex}</button>
+            <button key={ex} onClick={() => setText(ex)} className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-[var(--dim)] border border-[var(--border)]">{ex}</button>
           ))}
         </div>
-      </form>
+      </div>
 
-      {q && (
+      {/* facet + sort bar */}
+      <div className="card p-3 flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-1.5 text-xs text-[var(--dim)] mr-1"><SlidersHorizontal size={14} /> Phase</span>
+        {CLASSES.map(c => {
+          const on = activeClasses.has(c)
+          return (
+            <button key={c} onClick={() => toggleFacet(c)} className="facet"
+              style={on ? { background: CLASS_COLOR[c] + '26', borderColor: CLASS_COLOR[c], color: CLASS_COLOR[c] } : {}}>
+              <span className="w-2 h-2 rounded-full" style={{ background: CLASS_COLOR[c] }} />
+              {CLASS_LABEL[c]} <span className="opacity-70">{classCounts[c]}</span>
+            </button>
+          )
+        })}
+        <button onClick={() => setFormsOnly(v => !v)} className="facet"
+          style={formsOnly ? { background: '#34d39926', borderColor: '#34d399', color: '#34d399' } : {}}>
+          <Boxes size={12} /> Forms compounds
+        </button>
+        <div className="ml-auto flex items-center gap-2">
+          {anyFilter && (
+            <button onClick={() => { setText(''); setFacets(new Set()); setFormsOnly(false) }}
+              className="text-xs text-[var(--dim)] hover:text-[var(--text)] flex items-center gap-1"><X size={13} /> Reset</button>
+          )}
+          <label className="text-xs text-[var(--dim)]">Sort</label>
+          <select className="sel" value={sort} onChange={e => setSort(e.target.value)}>
+            {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* stats */}
+      <div className="flex flex-wrap gap-3">
+        <div className="stat"><div className="v grad-text">{results.length}</div><div className="k">systems matched</div></div>
+        <div className="stat"><div className="v">{totalStable.toLocaleString()}</div><div className="k">DFT-stable compounds</div></div>
+        <div className="stat flex-1 min-w-[220px]">
+          <div className="k mb-1.5">phase-class mix of results</div>
+          <div className="flex h-3 rounded-full overflow-hidden bg-[var(--cell)]">
+            {CLASSES.map(c => {
+              const tot = CLASSES.reduce((s, k) => s + resClassDist[k], 0) || 1
+              const w = resClassDist[c] / tot * 100
+              return w > 0 ? <span key={c} title={`${CLASS_LABEL[c]}: ${resClassDist[c]}`} style={{ width: `${w}%`, background: CLASS_COLOR[c] }} /> : null
+            })}
+          </div>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10px]">
+            {CLASSES.map(c => <span key={c} style={{ color: CLASS_COLOR[c] }}>● {CLASS_LABEL[c]} {resClassDist[c]}</span>)}
+          </div>
+        </div>
+      </div>
+
+      {q.formula || q.els.length || q.formsCompounds || formsOnly || Object.keys(q.prefs).length ? (
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-[var(--dim)]">Parsed:</span>
+          <span className="text-[var(--dim)]">Reading your query as:</span>
           {q.formula && <Chip color="#a5b4fc">compound {q.formula}</Chip>}
           {q.els.map(e => <Chip key={e} color="#38bdf8">element {e}</Chip>)}
-          {q.classes.map(c => <Chip key={c} color={CLASS_COLOR[c]}>{CLASS_LABEL[c]}</Chip>)}
-          {q.formsCompounds && <Chip color="#34d399">forms DFT-stable compounds</Chip>}
-          {Object.entries(q.prefs).map(([a, d]) => <Chip key={a}>{d} {axes[a]?.label || a}</Chip>)}
-          {!q.els.length && !q.classes.length && !q.formsCompounds && !q.formula && !Object.keys(q.prefs).length &&
-            <span className="text-amber-400">free-text match on pair / compound names</span>}
+          {(q.formsCompounds || formsOnly) && <Chip color="#34d399">forms DFT-stable compounds</Chip>}
+          {Object.entries(q.prefs).map(([a, d]) => <Chip key={a}>{d} {PROP_SYN[a].lab}</Chip>)}
         </div>
-      )}
+      ) : null}
 
-      {results && (
-        <div className="text-sm text-[var(--dim)]">
-          {results.length} matching system{results.length !== 1 ? 's' : ''}
-          {results.length > 60 && ' · showing top 60'}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {results && results.slice(0, 60).map(({ p, reasons }) => {
+      {/* results */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {results.slice(0, 90).map(({ p, reasons }, i) => {
           const d = dft?.[p.pair]
+          const dom = dominantClass(p.truth) || 'partial'
           return (
             <button key={p.pair} onClick={() => setOpen(p)}
-              className="card p-3 flex gap-3 text-left hover:ring-1 hover:ring-sky-500/50 transition">
-              <img src={`./phase/${p.phase_img}`} alt={p.pair}
-                className="w-28 h-24 object-contain bg-white rounded shrink-0" loading="lazy" />
+              className="rcard card p-3 pl-4 flex gap-3 text-left fade-up"
+              style={{ animationDelay: `${Math.min(i, 12) * 18}ms` }}>
+              <span className="stripe" style={{ background: CLASS_COLOR[dom] }} />
+              <img src={`./phase/${p.phase_img}`} alt={p.pair} loading="lazy"
+                className="w-24 h-24 object-contain bg-white rounded shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="font-semibold flex items-center gap-2">
-                  <FlaskConical size={14} className="text-[var(--dim)]" /> {p.pair}
-                </div>
+                <div className="font-semibold flex items-center gap-1.5"><FlaskConical size={14} className="text-[var(--dim)]" /> {p.pair}</div>
                 <div className="flex flex-wrap gap-1 my-1">
                   {p.truth.map(c => (
-                    <span key={c} className="px-1.5 py-0.5 rounded text-[10px]"
-                      style={{ background: CLASS_COLOR[c] + '33', color: CLASS_COLOR[c] }}>
-                      {CLASS_LABEL[c]}
-                    </span>
+                    <span key={c} className="px-1.5 py-0.5 rounded text-[10px]" style={{ background: CLASS_COLOR[c] + '33', color: CLASS_COLOR[c] }}>{CLASS_LABEL[c]}</span>
                   ))}
-                  {p.pred?.length > 0 && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] text-[var(--dim)]"
-                      style={{ background: '#ffffff10' }}>
-                      MAGPIE: {p.pred.map(c => CLASS_LABEL[c].split(' ')[0]).join(', ')}
-                    </span>
-                  )}
                 </div>
+                <ProbBar prob={p.prob} />
+                {p.pred?.length > 0 && <div className="text-[10px] text-[var(--dim)] mt-1">MAGPIE → {p.pred.map(c => CLASS_LABEL[c].split(' ')[0]).join(', ')}</div>}
                 <DftBadges d={d} />
-                {reasons?.length > 0 && (
-                  <div className="text-[11px] text-[var(--dim)] leading-snug mt-1">{reasons.join(' · ')}</div>
-                )}
+                {reasons?.length > 0 && <div className="text-[11px] text-[var(--dim)] leading-snug mt-1">{reasons.join(' · ')}</div>}
               </div>
             </button>
           )
         })}
       </div>
 
-      {results && results.length === 0 && (
-        <div className="card p-6 text-center text-[var(--dim)] text-sm">
-          Nothing matched. Try an element symbol (La), a pair (Al-La), a behaviour
-          (immiscible / forms compounds), or a property (light, stiff, cheap).
+      {results.length > 90 && <div className="text-xs text-[var(--dim)] text-center">showing first 90 of {results.length} — refine with the search box or facets above</div>}
+      {results.length === 0 && (
+        <div className="card p-8 text-center text-[var(--dim)] text-sm">
+          <Atom className="mx-auto mb-2 opacity-50" /> Nothing matched.
+          Try an element (La), a pair (Al-La), a behaviour (immiscible / forms compounds), or a property (light, stiff, cheap).
         </div>
       )}
     </div>
@@ -307,10 +329,5 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
 }
 
 function Chip({ children, color }) {
-  return (
-    <span className="px-2 py-0.5 rounded-full text-[11px]"
-      style={{ background: (color || '#64748b') + '26', color: color || '#cbd5e1' }}>
-      {children}
-    </span>
-  )
+  return <span className="px-2 py-0.5 rounded-full text-[11px]" style={{ background: (color || '#64748b') + '26', color: color || '#cbd5e1' }}>{children}</span>
 }

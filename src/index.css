@@ -72,6 +72,40 @@ html.light .glow { box-shadow: 0 10px 34px rgba(80,110,180,.14); }
 /* compact DFT/result badges */
 .badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 9999px; font-size: 10px; line-height: 1.4; white-space: nowrap; }
 
+/* ---- one-stop explorer aesthetics ---- */
+@keyframes heroShift { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+.hero-grad {
+  background: linear-gradient(110deg,
+    color-mix(in srgb, var(--accent) 16%, transparent),
+    color-mix(in srgb, var(--accent2) 16%, transparent),
+    color-mix(in srgb, var(--accent3) 14%, transparent),
+    color-mix(in srgb, var(--accent) 16%, transparent));
+  background-size: 200% 200%;
+  animation: heroShift 14s linear infinite alternate;
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.fade-up { animation: fadeUp .28s ease both; }
+
+.rcard { transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease; will-change: transform; overflow: hidden; position: relative; }
+.rcard:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); box-shadow: 0 12px 28px rgba(0,0,0,.22); }
+html.light .rcard:hover { box-shadow: 0 12px 28px rgba(80,110,180,.18); }
+.rcard .stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+
+/* segmented MAGPIE probability bar */
+.probbar { display: flex; height: 5px; border-radius: 9999px; overflow: hidden; background: var(--cell); }
+.probbar > span { height: 100%; }
+
+/* facet toggle pill */
+.facet { cursor: pointer; user-select: none; padding: 4px 10px; border-radius: 9999px; font-size: 12px; border: 1px solid var(--border); transition: all .12s ease; display: inline-flex; align-items: center; gap: 6px; }
+.facet:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+
+/* stat tile */
+.stat { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; }
+.stat .v { font-size: 22px; font-weight: 800; line-height: 1; }
+.stat .k { font-size: 11px; color: var(--dim); margin-top: 3px; }
+
+select.sel { background: var(--input); border: 1px solid var(--border); color: var(--text); border-radius: 9px; padding: 5px 8px; font-size: 12px; }
+
 .elem-cell {
   transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
   cursor: pointer;
