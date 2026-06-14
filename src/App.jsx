@@ -84,7 +84,7 @@ export default function App() {
             {tab === 'select' && <Selector pairs={pairs} elements={elements} axes={axes} dft={dft} onTab={setTab} />}
             {tab === 'pt' && <PeriodicTable elements={elements} pairs={pairs} groups={groups} labels={labels} dft={dft} />}
             {tab === 'desc' && <Descriptors />}
-            {tab === 'map' && <ClassMap pairs={pairs} />}
+            {tab === 'map' && <ClassMap pairs={pairs} dft={dft} />}
             {tab === 'ashby' && <AshbyChart elements={elements} axes={axes} />}
             {tab === 'upload' && <Upload />}
           </>
