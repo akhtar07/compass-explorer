@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Search, X, ArrowLeft, Atom, FlaskConical, Boxes, Gem, Sparkles, SlidersHorizontal } from 'lucide-react'
+import { Search, X, ArrowLeft, Atom, FlaskConical, Boxes, Gem, Sparkles, SlidersHorizontal, Pin, GitCompare, Check } from 'lucide-react'
 import { CLASSES, CLASS_COLOR, CLASS_LABEL, dominantClass } from '../lib/util'
 import PairDetail from './PairDetail'
 
@@ -141,6 +141,14 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
   const [formsOnly, setFormsOnly] = useState(false)
   const [sort, setSort] = useState('relevance')
   const [open, setOpen] = useState(null)
+  const [pinned, setPinned] = useState(() => new Set())
+  const [comparing, setComparing] = useState(false)
+
+  const togglePin = (e, key) => {
+    e.stopPropagation()
+    setPinned(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : (n.size < 6 && n.add(key)); return n })
+  }
+  const pinnedPairs = useMemo(() => pairs.filter(p => pinned.has(p.pair)), [pairs, pinned])
 
   const q = useMemo(() => parseQuery(text, elements), [text, elements])
 
@@ -201,8 +209,14 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
     )
   }
 
+  if (comparing && pinnedPairs.length) {
+    return <CompareView systems={pinnedPairs} dft={dft} onBack={() => setComparing(false)}
+             onOpen={p => { setComparing(false); setOpen(p) }}
+             onRemove={key => setPinned(prev => { const n = new Set(prev); n.delete(key); return n })} />
+  }
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-16">
       {/* hero */}
       <div className="card glow hero-grad p-6 flex flex-col gap-3">
         <div className="flex items-center gap-2 text-[var(--dim)] text-sm">
@@ -293,11 +307,17 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
         {results.slice(0, 90).map(({ p, reasons }, i) => {
           const d = dft?.[p.pair]
           const dom = dominantClass(p.truth) || 'partial'
+          const isPinned = pinned.has(p.pair)
           return (
-            <button key={p.pair} onClick={() => setOpen(p)}
-              className="rcard card p-3 pl-4 flex gap-3 text-left fade-up"
+            <div key={p.pair} onClick={() => setOpen(p)} role="button"
+              className="rcard card p-3 pl-4 flex gap-3 text-left fade-up cursor-pointer"
               style={{ animationDelay: `${Math.min(i, 12) * 18}ms` }}>
               <span className="stripe" style={{ background: CLASS_COLOR[dom] }} />
+              <button onClick={e => togglePin(e, p.pair)} title={isPinned ? 'Unpin' : 'Pin to compare'}
+                className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition"
+                style={isPinned ? { background: 'var(--accent)', color: '#0b1020' } : { background: 'var(--panel2)', color: 'var(--dim)' }}>
+                {isPinned ? <Check size={13} /> : <Pin size={12} />}
+              </button>
               <img src={`./phase/${p.phase_img}`} alt={p.pair} loading="lazy"
                 className="w-24 h-24 object-contain bg-white rounded shrink-0" />
               <div className="min-w-0 flex-1">
@@ -312,7 +332,7 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
                 <DftBadges d={d} />
                 {reasons?.length > 0 && <div className="text-[11px] text-[var(--dim)] leading-snug mt-1">{reasons.join(' · ')}</div>}
               </div>
-            </button>
+            </div>
           )
         })}
       </div>
@@ -324,6 +344,96 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
           Try an element (La), a pair (Al-La), a behaviour (immiscible / forms compounds), or a property (light, stiff, cheap).
         </div>
       )}
+
+      {/* sticky compare tray */}
+      {pinnedPairs.length > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 card glow px-3 py-2 flex items-center gap-2 fade-up"
+          style={{ background: 'var(--panel)' }}>
+          <Pin size={14} className="text-[var(--accent)]" />
+          <div className="flex flex-wrap gap-1 max-w-[46vw]">
+            {pinnedPairs.map(p => (
+              <span key={p.pair} className="badge" style={{ background: 'var(--panel2)', color: 'var(--text)' }}>
+                {p.pair}
+                <button onClick={() => setPinned(prev => { const n = new Set(prev); n.delete(p.pair); return n })} className="text-[var(--dim)] hover:text-[var(--text)]"><X size={11} /></button>
+              </span>
+            ))}
+          </div>
+          <button onClick={() => setComparing(true)} disabled={pinnedPairs.length < 2}
+            className="ml-1 px-3 py-1.5 rounded-lg text-sm font-medium chip-grad disabled:opacity-40 flex items-center gap-1.5">
+            <GitCompare size={14} /> Compare {pinnedPairs.length}
+          </button>
+          <button onClick={() => setPinned(new Set())} title="Clear all" className="text-[var(--dim)] hover:text-[var(--text)]"><X size={15} /></button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---- side-by-side comparison of pinned systems ----
+function CompareView({ systems, dft, onBack, onOpen, onRemove }) {
+  const rows = [
+    { k: 'thumb', label: '' },
+    { k: 'truth', label: 'Verified class' },
+    { k: 'pred', label: 'MAGPIE prediction' },
+    ...CLASSES.map(c => ({ k: 'prob:' + c, label: `P(${CLASS_LABEL[c]})`, cls: c })),
+    { k: 'n_stable', label: 'DFT-stable compounds' },
+    { k: 'ground', label: 'Ground state' },
+    { k: 'hull', label: 'Min hull dist (eV)' },
+    { k: 'young', label: 'Elastic modulus (GPa)' },
+    { k: 'sources', label: 'DFT sources' },
+    { k: 'density', label: 'Density range (g/cc)' },
+    { k: 'mp', label: 'Melting point range (K)' },
+    { k: 'price', label: 'Price range ($/kg)' },
+  ]
+  const cell = (p, k) => {
+    const d = dft?.[p.pair]
+    const rng = a => p.props?.[a] ? `${p.props[a].min} – ${p.props[a].max}` : '—'
+    if (k === 'thumb') return <img src={`./phase/${p.phase_img}`} className="w-full h-20 object-contain bg-white rounded" loading="lazy" />
+    if (k === 'truth') return <div className="flex flex-wrap gap-1">{p.truth.map(c => <span key={c} className="px-1.5 py-0.5 rounded text-[10px]" style={{ background: CLASS_COLOR[c] + '33', color: CLASS_COLOR[c] }}>{CLASS_LABEL[c]}</span>)}</div>
+    if (k === 'pred') return <span className="text-[var(--dim)]">{p.pred?.map(c => CLASS_LABEL[c].split(' ')[0]).join(', ') || '—'}</span>
+    if (k.startsWith('prob:')) { const c = k.slice(5); const v = p.prob?.[c] ?? 0; return (
+      <div className="flex items-center gap-1.5"><div className="flex-1 h-1.5 rounded bg-[var(--panel2)] overflow-hidden"><div className="h-full" style={{ width: `${v * 100}%`, background: CLASS_COLOR[c] }} /></div><span className="font-mono text-[10px] w-7 text-right">{v.toFixed(2)}</span></div>) }
+    if (k === 'n_stable') return d?.n_stable ?? '—'
+    if (k === 'ground') return d?.ground_state ? `${d.ground_state.formula} (${d.ground_state.Ef})` : '—'
+    if (k === 'hull') return d?.min_hull != null ? d.min_hull : '—'
+    if (k === 'young') return d?.elastic?.young_GPa != null ? Math.round(d.elastic.young_GPa) : '—'
+    if (k === 'sources') return d?.sources?.join(', ') || '—'
+    if (k === 'density') return rng('density')
+    if (k === 'mp') return rng('JARVIS_mp')
+    if (k === 'price') return rng('Price_USD_kg')
+    return '—'
+  }
+  return (
+    <div className="flex flex-col gap-3 fade-up">
+      <div className="flex items-center justify-between">
+        <button onClick={onBack} className="flex items-center gap-2 text-sm text-[var(--dim)] hover:text-[var(--text)]"><ArrowLeft size={16} /> back to results</button>
+        <span className="text-sm text-[var(--dim)]">Comparing {systems.length} systems</span>
+      </div>
+      <div className="card glow overflow-x-auto">
+        <table className="w-full text-xs border-collapse">
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.k} className="border-b border-[var(--border)]">
+                <td className="px-3 py-2 text-[var(--dim)] font-medium sticky left-0 bg-[var(--panel)] min-w-[150px]" style={r.cls ? { color: CLASS_COLOR[r.cls] } : {}}>{r.label}</td>
+                {systems.map(p => (
+                  <td key={p.pair} className="px-3 py-2 align-middle min-w-[150px]">
+                    {r.k === 'thumb' ? (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <button onClick={() => onOpen(p)} className="font-semibold hover:text-[var(--accent)]">{p.pair}</button>
+                          <button onClick={() => onRemove(p.pair)} className="text-[var(--dim)] hover:text-[var(--text)]"><X size={13} /></button>
+                        </div>
+                        {cell(p, r.k)}
+                      </div>
+                    ) : cell(p, r.k)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="text-[10px] text-[var(--dim)]">Property ranges are element bounds across the binary; DFT values are source-tagged, never averaged. Click a system name for its full page.</div>
     </div>
   )
 }
