@@ -1,0 +1,382 @@
+{
+ "isomorphous": {
+  "rule": "High valence-electron similarity (D4) is the gate; group-distance (D13) refines it.",
+  "driver": "D7 size mismatch",
+  "shap": [
+   {
+    "name": "D7 size mismatch",
+    "val": 1.0,
+    "raw": 1.5185
+   },
+   {
+    "name": "D4 valence similarity",
+    "val": 0.937,
+    "raw": 1.4228
+   },
+   {
+    "name": "D13 group distance",
+    "val": 0.882,
+    "raw": 1.3394
+   },
+   {
+    "name": "D2 bond-wtd mismatch",
+    "val": 0.497,
+    "raw": 0.7553
+   },
+   {
+    "name": "D3 mean orbital E",
+    "val": 0.305,
+    "raw": 0.4637
+   },
+   {
+    "name": "D5 Harrison coupling",
+    "val": 0.257,
+    "raw": 0.3908
+   },
+   {
+    "name": "D1 dom-orbital mismatch",
+    "val": 0.229,
+    "raw": 0.348
+   },
+   {
+    "name": "D6 bond stabilization",
+    "val": 0.199,
+    "raw": 0.3019
+   },
+   {
+    "name": "D8 EN difference",
+    "val": 0.184,
+    "raw": 0.279
+   }
+  ],
+  "incremental": [
+   {
+    "name": "D4 valence similarity",
+    "descriptor": "D4",
+    "delta": 0.515,
+    "cum": 0.515
+   },
+   {
+    "name": "D13 group distance",
+    "descriptor": "D13_group",
+    "delta": 0.0886,
+    "cum": 0.6036
+   },
+   {
+    "name": "D7 size mismatch",
+    "descriptor": "D7",
+    "delta": 0.0778,
+    "cum": 0.6814
+   },
+   {
+    "name": "D2 bond-wtd mismatch",
+    "descriptor": "D2_eV",
+    "delta": 0.0587,
+    "cum": 0.7401
+   },
+   {
+    "name": "D6 bond stabilization",
+    "descriptor": "D6_eV",
+    "delta": 0.011,
+    "cum": 0.7511
+   },
+   {
+    "name": "D3 mean orbital E",
+    "descriptor": "D3_eV",
+    "delta": 0.0362,
+    "cum": 0.7873
+   },
+   {
+    "name": "D5 Harrison coupling",
+    "descriptor": "D5_eV",
+    "delta": 0.0157,
+    "cum": 0.7727
+   }
+  ]
+ },
+ "partial": {
+  "rule": "Driven by atomic size-mismatch (D7) balanced against electronegativity difference (D8).",
+  "driver": "D7 size mismatch",
+  "shap": [
+   {
+    "name": "D7 size mismatch",
+    "val": 1.0,
+    "raw": 1.0829
+   },
+   {
+    "name": "D8 EN difference",
+    "val": 0.445,
+    "raw": 0.4819
+   },
+   {
+    "name": "D13 group distance",
+    "val": 0.331,
+    "raw": 0.3584
+   },
+   {
+    "name": "D3 mean orbital E",
+    "val": 0.319,
+    "raw": 0.3458
+   },
+   {
+    "name": "D4 valence similarity",
+    "val": 0.308,
+    "raw": 0.3336
+   },
+   {
+    "name": "D6 bond stabilization",
+    "val": 0.299,
+    "raw": 0.3241
+   },
+   {
+    "name": "D2 bond-wtd mismatch",
+    "val": 0.29,
+    "raw": 0.3142
+   },
+   {
+    "name": "D5 Harrison coupling",
+    "val": 0.279,
+    "raw": 0.3023
+   },
+   {
+    "name": "D1 dom-orbital mismatch",
+    "val": 0.254,
+    "raw": 0.2752
+   }
+  ],
+  "incremental": [
+   {
+    "name": "D7 size mismatch",
+    "descriptor": "D7",
+    "delta": 0.3883,
+    "cum": 0.3883
+   },
+   {
+    "name": "D13 group distance",
+    "descriptor": "D13_group",
+    "delta": 0.1169,
+    "cum": 0.5052
+   },
+   {
+    "name": "D5 Harrison coupling",
+    "descriptor": "D5_eV",
+    "delta": 0.0564,
+    "cum": 0.5616
+   },
+   {
+    "name": "D3 mean orbital E",
+    "descriptor": "D3_eV",
+    "delta": 0.0103,
+    "cum": 0.5719
+   },
+   {
+    "name": "D8 EN difference",
+    "descriptor": "D8",
+    "delta": 0.012,
+    "cum": 0.5839
+   },
+   {
+    "name": "D6 bond stabilization",
+    "descriptor": "D6_eV",
+    "delta": 0.0063,
+    "cum": 0.5902
+   },
+   {
+    "name": "D2 bond-wtd mismatch",
+    "descriptor": "D2_eV",
+    "delta": 0.0098,
+    "cum": 0.6
+   }
+  ]
+ },
+ "immiscible": {
+  "rule": "Periodic-group distance (D13) splits first \u2014 far-apart groups + size mismatch drive demixing.",
+  "driver": "D13 group distance",
+  "shap": [
+   {
+    "name": "D13 group distance",
+    "val": 1.0,
+    "raw": 1.1668
+   },
+   {
+    "name": "D7 size mismatch",
+    "val": 0.665,
+    "raw": 0.7754
+   },
+   {
+    "name": "D3 mean orbital E",
+    "val": 0.494,
+    "raw": 0.5759
+   },
+   {
+    "name": "D4 valence similarity",
+    "val": 0.472,
+    "raw": 0.5505
+   },
+   {
+    "name": "D8 EN difference",
+    "val": 0.364,
+    "raw": 0.4246
+   },
+   {
+    "name": "D2 bond-wtd mismatch",
+    "val": 0.331,
+    "raw": 0.3858
+   },
+   {
+    "name": "D5 Harrison coupling",
+    "val": 0.285,
+    "raw": 0.3321
+   },
+   {
+    "name": "D1 dom-orbital mismatch",
+    "val": 0.264,
+    "raw": 0.3077
+   },
+   {
+    "name": "D6 bond stabilization",
+    "val": 0.239,
+    "raw": 0.2794
+   }
+  ],
+  "incremental": [
+   {
+    "name": "D4 valence similarity",
+    "descriptor": "D4",
+    "delta": 0.2735,
+    "cum": 0.2735
+   },
+   {
+    "name": "D13 group distance",
+    "descriptor": "D13_group",
+    "delta": 0.1185,
+    "cum": 0.392
+   },
+   {
+    "name": "D7 size mismatch",
+    "descriptor": "D7",
+    "delta": 0.1999,
+    "cum": 0.5919
+   },
+   {
+    "name": "D3 mean orbital E",
+    "descriptor": "D3_eV",
+    "delta": 0.0346,
+    "cum": 0.6265
+   },
+   {
+    "name": "D8 EN difference",
+    "descriptor": "D8",
+    "delta": 0.0007,
+    "cum": 0.6272
+   },
+   {
+    "name": "D6 bond stabilization",
+    "descriptor": "D6_eV",
+    "delta": 0.0141,
+    "cum": 0.6413
+   },
+   {
+    "name": "D2 bond-wtd mismatch",
+    "descriptor": "D2_eV",
+    "delta": 0.0065,
+    "cum": 0.6353
+   }
+  ]
+ },
+ "intermetallic": {
+  "rule": "Periodic-group distance (D13) splits first \u2014 large group separation favours ordered compounds.",
+  "driver": "D13 group distance",
+  "shap": [
+   {
+    "name": "D13 group distance",
+    "val": 1.0,
+    "raw": 1.4544
+   },
+   {
+    "name": "D4 valence similarity",
+    "val": 0.376,
+    "raw": 0.5472
+   },
+   {
+    "name": "D3 mean orbital E",
+    "val": 0.332,
+    "raw": 0.4833
+   },
+   {
+    "name": "D7 size mismatch",
+    "val": 0.324,
+    "raw": 0.4715
+   },
+   {
+    "name": "D8 EN difference",
+    "val": 0.277,
+    "raw": 0.4024
+   },
+   {
+    "name": "D2 bond-wtd mismatch",
+    "val": 0.276,
+    "raw": 0.402
+   },
+   {
+    "name": "D1 dom-orbital mismatch",
+    "val": 0.264,
+    "raw": 0.3841
+   },
+   {
+    "name": "D5 Harrison coupling",
+    "val": 0.26,
+    "raw": 0.3783
+   },
+   {
+    "name": "D6 bond stabilization",
+    "val": 0.2,
+    "raw": 0.2907
+   }
+  ],
+  "incremental": [
+   {
+    "name": "D13 group distance",
+    "descriptor": "D13_group",
+    "delta": 0.8221,
+    "cum": 0.8221
+   },
+   {
+    "name": "D3 mean orbital E",
+    "descriptor": "D3_eV",
+    "delta": 0.0194,
+    "cum": 0.8415
+   },
+   {
+    "name": "D1 dom-orbital mismatch",
+    "descriptor": "D1_eV",
+    "delta": 0.0241,
+    "cum": 0.8656
+   },
+   {
+    "name": "D4 valence similarity",
+    "descriptor": "D4",
+    "delta": 0.004,
+    "cum": 0.8696
+   },
+   {
+    "name": "D7 size mismatch",
+    "descriptor": "D7",
+    "delta": 0.0021,
+    "cum": 0.8717
+   },
+   {
+    "name": "D2 bond-wtd mismatch",
+    "descriptor": "D2_eV",
+    "delta": 0.003,
+    "cum": 0.873
+   },
+   {
+    "name": "D6 bond stabilization",
+    "descriptor": "D6_eV",
+    "delta": 0.0022,
+    "cum": 0.8752
+   }
+  ]
+ }
+}
