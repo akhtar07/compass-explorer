@@ -192,7 +192,12 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
     return c
   }, [results])
 
-  const examples = ['Al-La', 'immiscible with Fe', 'forms compounds, refractory', 'light and stiff, cheap', 'AlAg2', 'Ti']
+  const examples = [
+    'Al-La', 'immiscible with Fe', 'forms compounds, refractory', 'light and stiff, cheap',
+    'AlAg2', 'Ti', 'isomorphous and conductive', 'cheap intermetallic with Ni',
+    'lanthanum', 'strong and low density', 'Mg-Zn', 'high melting, forms compounds',
+    'partial solubility with Cu', 'Fe2Nb',
+  ]
 
   const toggleFacet = c => setFacets(prev => { const n = new Set(prev); n.has(c) ? n.delete(c) : n.add(c); return n })
   const activeClasses = new Set([...facets, ...q.classes])
