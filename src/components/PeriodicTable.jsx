@@ -3,7 +3,7 @@ import { viridis, textOn, prettyProp, fmt, CLASSES, CLASS_COLOR, CLASS_LABEL, do
          sgToStructure, STRUCT_COLOR, STRUCT_ORDER } from '../lib/util'
 import PairDetail from './PairDetail'
 
-export default function PeriodicTable({ elements, pairs, groups, labels }) {
+export default function PeriodicTable({ elements, pairs, groups, labels, dft }) {
   const [mode, setMode] = useState('classify')   // 'classify' | 'heatmap'
   const [prop, setProp] = useState('ICOHP')
   const [selA, setSelA] = useState(null)
@@ -146,7 +146,7 @@ export default function PeriodicTable({ elements, pairs, groups, labels }) {
 
       {/* detail area */}
       {mode === 'classify' && selPair && (
-        <div className="mt-2"><PairDetail pair={selPair} allPairs={pairs} /></div>
+        <div className="mt-2"><PairDetail pair={selPair} allPairs={pairs} dft={dft} /></div>
       )}
       {mode === 'classify' && selA && !selB && (
         <div className="card p-4 text-[var(--dim)] text-sm">
