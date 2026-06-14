@@ -73,11 +73,18 @@ export default function PairDetail({ pair, allPairs }) {
       <div className="card glow p-4">
         <h3 className="text-sm uppercase tracking-wide text-[var(--dim)] mb-1">Descriptors D1–D13</h3>
         <div className="text-[10px] text-slate-500 mb-2">normalized across the 610-pair set · see the Descriptors tab for definitions</div>
+        {pair.D?.D1 == null ? (
+          <div className="text-xs text-[var(--dim)] py-8 text-center leading-relaxed">
+            COMPASS descriptors pending for this newly added system.<br/>
+            Phase classification is hand-verified; the prediction shown is the composition (MAGPIE) model.
+          </div>
+        ) : (
         <Radar data={radar} options={{
           scales: { r: { min: 0, max: 1, grid: { color: '#26304e' }, angleLines: { color: '#26304e' },
             pointLabels: { color: '#9aa3bd', font: { size: 11 } }, ticks: { display: false } } },
           plugins: { legend: { display: false } },
         }} />
+        )}
       </div>
     </div>
   )
