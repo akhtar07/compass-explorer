@@ -72,7 +72,11 @@ export default function PairDetail({ pair, allPairs }) {
       {/* radar */}
       <div className="card glow p-4">
         <h3 className="text-sm uppercase tracking-wide text-[var(--dim)] mb-1">Descriptors D1–D13</h3>
-        <div className="text-[10px] text-slate-500 mb-2">normalized across the 610-pair set · see the Descriptors tab for definitions</div>
+        <div className="text-[10px] text-slate-500 mb-2">
+          normalized across the 610-pair set · see the Descriptors tab for definitions
+          {pair.D?.D1 != null && pair.D?.D9 == null &&
+            <span className="text-amber-500/80"> · D9–D12 (DFT/LOBSTER bonding) not available for this added system</span>}
+        </div>
         {pair.D?.D1 == null ? (
           <div className="text-xs text-[var(--dim)] py-8 text-center leading-relaxed">
             COMPASS descriptors pending for this newly added system.<br/>
