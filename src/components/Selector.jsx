@@ -192,11 +192,13 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
     return c
   }, [results])
 
-  const examples = [
-    'Al-La', 'immiscible with Fe', 'forms compounds, refractory', 'light and stiff, cheap',
-    'AlAg2', 'Ti', 'isomorphous and conductive', 'cheap intermetallic with Ni',
-    'lanthanum', 'strong and low density', 'Mg-Zn', 'high melting, forms compounds',
-    'partial solubility with Cu', 'Fe2Nb',
+  const exampleGroups = [
+    { label: 'Element',   items: ['Ti', 'lanthanum', 'uranium', 'Nb'] },
+    { label: 'Pair',      items: ['Al-La', 'Mg-Zn', 'Cu-Ni', 'W-Re'] },
+    { label: 'Behaviour', items: ['immiscible with Fe', 'isomorphous and conductive', 'intermetallic with Ni', 'partial solubility with Cu'] },
+    { label: 'Compounds', items: ['forms compounds, refractory', 'high melting, forms compounds'] },
+    { label: 'Property',  items: ['light and stiff, cheap', 'strong and low density', 'refractory and conductive', 'cheap and lightweight'] },
+    { label: 'Formula',   items: ['AlAg2', 'Fe2Nb', 'Ni3Al', 'Mg2Cu'] },
   ]
 
   const toggleFacet = c => setFacets(prev => { const n = new Set(prev); n.has(c) ? n.delete(c) : n.add(c); return n })
@@ -241,10 +243,16 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
             </button>
           )}
         </div>
-        <div className="flex flex-wrap gap-2 text-xs items-center">
-          <span className="text-[var(--dim)]">Try:</span>
-          {examples.map(ex => (
-            <button key={ex} onClick={() => setText(ex)} className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-[var(--dim)] border border-[var(--border)]">{ex}</button>
+        <div className="flex flex-col gap-1.5 text-xs">
+          <span className="text-[var(--dim)]">Try any of these — every query type the one-stop search understands:</span>
+          {exampleGroups.map(g => (
+            <div key={g.label} className="flex flex-wrap items-center gap-1.5">
+              <span className="w-20 shrink-0 text-[10px] uppercase tracking-wide text-[var(--dim)]/70">{g.label}</span>
+              {g.items.map(ex => (
+                <button key={ex} onClick={() => setText(ex)}
+                  className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-[var(--dim)] hover:text-[var(--text)] border border-[var(--border)] transition">{ex}</button>
+              ))}
+            </div>
           ))}
         </div>
       </div>
