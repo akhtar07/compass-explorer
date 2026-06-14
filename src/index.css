@@ -69,6 +69,9 @@ html.light .glow { box-shadow: 0 10px 34px rgba(80,110,180,.14); }
 .grad-bar { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
 .chip-grad { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 18%, transparent), color-mix(in srgb, var(--accent2) 18%, transparent)); }
 
+/* compact DFT/result badges */
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 9999px; font-size: 10px; line-height: 1.4; white-space: nowrap; }
+
 .elem-cell {
   transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
   cursor: pointer;
