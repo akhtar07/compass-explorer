@@ -128,9 +128,40 @@ conformal = {k: {'alpha': v.get('alpha'),
                  'joint_all4_covered': r3(v.get('joint_all4_covered'))}
              for k, v in C.items()}
 
+# ---- threshold-free metrics (adv_threshold_free.py -> threshold_free.json) ----
+TF_SRC = SRC.parent / 'threshold_free.json'
+tf = json.load(open(TF_SRC)) if TF_SRC.exists() else None
+threshold_free = None
+if tf:
+    auc = {}
+    for k, v in tf['auc'].items():
+        auc[k] = {'macro_roc': r3(v['macro']['roc_auc']), 'macro_roc_ci95': [r3(x) for x in v['macro']['roc_ci95']],
+                  'macro_pr': r3(v['macro']['pr_auc']), 'macro_pr_ci95': [r3(x) for x in v['macro']['pr_ci95']],
+                  'per_class': {c: {'roc': r3(v[c]['roc_auc']), 'pr': r3(v[c]['pr_auc']),
+                                    'prevalence': r3(v[c]['prevalence'])} for c in CLASSES}}
+    auc_paired = {k: {'n': v['n'],
+                      'roc': {'delta': r3(v['roc']['delta']), 'ci95': [r3(x) for x in v['roc']['ci95']]},
+                      'pr': {'delta': r3(v['pr']['delta']), 'ci95': [r3(x) for x in v['pr']['ci95']]}}
+                  for k, v in tf['auc_paired'].items()}
+    sweep = {k: {'thresholds': v['thresholds'], 'macro_f1': [r3(x) for x in v['macro_f1']]}
+             for k, v in tf['sweep'].items()}
+    crossfit = {k: {'n': v['n'], 'f1_fixed': r3(v['macro_f1_fixed_0.5']), 'f1_crossfit': r3(v['macro_f1_crossfit']),
+                    'delta': r3(v['delta_crossfit_minus_fixed']), 'delta_ci95': [r3(x) for x in v['delta_ci95']],
+                    'median_thresholds': v['median_thresholds'], 'f1_insample_opt': r3(v['macro_f1_insample_optimum']),
+                    'insample_thresholds': v['insample_thresholds']} for k, v in tf['crossfit'].items()}
+    reliability = {k: {'ece_mean': r3(v['ece_mean']),
+                       'classes': {c: {'mean_pred': [r3(x) if x is not None else None for x in v[c]['mean_pred']],
+                                       'obs_freq': [r3(x) if x is not None else None for x in v[c]['obs_freq']],
+                                       'count': v[c]['count'], 'ece': r3(v[c]['ece'])} for c in CLASSES}}
+                   for k, v in tf['reliability'].items()}
+    threshold_free = {'source': 'data/processed/ml/adv/threshold_free.json', 'n_boot': tf['n_boot'],
+                      'n_clusters': tf['n_clusters'], 'auc': auc, 'auc_paired': auc_paired, 'sweep': sweep,
+                      'crossfit': crossfit, 'reliability': reliability}
+
 out = {
     'generated': {'date': date.today().isoformat(), 'script': 'build_benchmark.py',
                   'source': 'data/processed/ml/adv/adv_summary.json'},
+    'threshold_free': threshold_free,
     'protocol': ('One-vs-rest multi-label classification over the 970 ground-truth binary systems; '
                  'leave-one-element-out cross-validation (69 folds); macro-F1 over the four classes '
                  'isomorphous / partial / immiscible / intermetallic; 95 % CI = element-cluster bootstrap.'),

@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react'
-import { Search, X, ArrowLeft, Atom, FlaskConical, Boxes, Gem, Sparkles, SlidersHorizontal, Pin, GitCompare, Check } from 'lucide-react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Search, X, Atom, FlaskConical, Boxes, Gem, Sparkles, SlidersHorizontal, Pin, Check, Download, Link2, ArrowUpRight, PieChart } from 'lucide-react'
 import { CLASSES, CLASS_COLOR, CLASS_LABEL, dominantClass } from '../lib/util'
-import PairDetail from './PairDetail'
+import { useApp } from '../lib/app'
 
 // ONE-STOP EXPLORER. A single instant-search box understands an element
 // ("La" / "lanthanum"), a pair ("Al-La"), a phase behaviour ("immiscible",
@@ -9,7 +9,7 @@ import PairDetail from './PairDetail'
 // formula ("AlAg2"). Layer that with click-to-toggle phase facets, a "forms
 // compounds" filter and live sorting. Results are rich animated cards (ground-truth
 // class + MAGPIE probabilities + multi-source DFT badges + thumbnail); click one
-// for the full PairDetail. Deterministic parser — no API key required.
+// for the full system page. Deterministic parser — no API key required.
 
 const PROP_SYN = {
   density:           { high: ['dense', 'heavy', 'high density'], low: ['light', 'lightweight', 'low density'], lab: 'density' },
@@ -120,10 +120,10 @@ function DftBadges({ d }) {
   if (!d) return <span className="text-[11px] text-[var(--dim)]">no DFT link</span>
   return (
     <div className="flex flex-wrap gap-1 mt-1">
-      {d.n_stable > 0 && <span className="badge" style={{ background: '#10b98122', color: '#34d399' }}><Boxes size={11} /> {d.n_stable} stable</span>}
-      {d.ground_state?.formula && <span className="badge" style={{ background: '#6366f122', color: '#a5b4fc' }}><Gem size={11} /> {d.ground_state.formula} ({d.ground_state.Ef} eV)</span>}
-      {d.elastic?.young_GPa != null && <span className="badge" style={{ background: '#f59e0b22', color: '#fbbf24' }}>E {Math.round(d.elastic.young_GPa)} GPa</span>}
-      {d.sources?.length > 0 && <span className="badge" style={{ background: '#64748b22', color: '#cbd5e1' }}>{d.sources.join(' · ')}</span>}
+      {d.n_stable > 0 && <span className="badge" style={{ background: 'color-mix(in srgb, var(--accent3) 16%, transparent)', color: 'var(--accent3)' }}><Boxes size={11} /> {d.n_stable} stable</span>}
+      {d.ground_state?.formula && <span className="badge" style={{ background: 'color-mix(in srgb, var(--accent2) 16%, transparent)', color: 'var(--accent2)' }}><Gem size={11} /> {d.ground_state.formula} <span className="mono">({d.ground_state.Ef} eV)</span></span>}
+      {d.elastic?.young_GPa != null && <span className="badge" style={{ background: 'color-mix(in srgb, #f59e0b 16%, transparent)', color: '#d97706' }}>E <span className="mono">{Math.round(d.elastic.young_GPa)}</span> GPa</span>}
+      {d.sources?.length > 0 && <span className="badge" style={{ background: 'var(--panel2)', color: 'var(--dim)' }}>{d.sources.join(' · ')}</span>}
     </div>
   )
 }
@@ -135,22 +135,95 @@ const SORTS = {
   hull:      'Deepest convex hull',
 }
 
-export default function Selector({ pairs, elements, axes, dft, onTab }) {
-  const [text, setText] = useState('')
+// ---- count-up number (eases to target on mount / when target changes) ----
+function useCountUp(target, ms = 900) {
+  const [v, setV] = useState(0)
+  const raf = useRef(null)
+  useEffect(() => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduce) { setV(target); return }
+    const t0 = performance.now(); const from = 0
+    const step = now => {
+      const k = Math.min(1, (now - t0) / ms); const e = 1 - Math.pow(1 - k, 3)
+      setV(Math.round(from + (target - from) * e))
+      if (k < 1) raf.current = requestAnimationFrame(step)
+    }
+    raf.current = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf.current)
+  }, [target, ms])
+  return v
+}
+function StatTile({ value, label, sub, grad }) {
+  const v = useCountUp(value)
+  return (
+    <div className="stat flex-1 min-w-[130px]">
+      <div className={`num-big mono ${grad ? 'grad-text' : ''}`}>{v.toLocaleString()}</div>
+      <div className="k">{label}</div>
+      {sub && <div className="text-[10px] text-[var(--faint)] mt-0.5">{sub}</div>}
+    </div>
+  )
+}
+
+// ---- conic-gradient donut of the ground-truth class mix (multi-label: every label counted) ----
+function ClassDonut({ counts }) {
+  const tot = CLASSES.reduce((s, c) => s + counts[c], 0) || 1
+  let acc = 0
+  const stops = CLASSES.map(c => { const a = acc; acc += counts[c] / tot * 100; return `${CLASS_COLOR[c]} ${a.toFixed(2)}% ${acc.toFixed(2)}%` }).join(', ')
+  return (
+    <div className="stat flex items-center gap-3 min-w-[260px]">
+      <div className="relative w-[74px] h-[74px] rounded-full shrink-0" style={{ background: `conic-gradient(${stops})` }}>
+        <div className="absolute inset-[13px] rounded-full flex flex-col items-center justify-center" style={{ background: 'var(--panel2)' }}>
+          <PieChart size={13} className="text-[var(--dim)]" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-0.5 text-[11px]">
+        <div className="k mb-0.5" style={{ marginTop: 0 }}>ground-truth labels (multi-label)</div>
+        {CLASSES.map(c => (
+          <div key={c} className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: CLASS_COLOR[c] }} />
+            <span className="text-[var(--text)]">{CLASS_LABEL[c]}</span>
+            <span className="mono text-[var(--dim)] ml-auto pl-2">{counts[c]}</span>
+            <span className="mono text-[var(--faint)] w-9 text-right">{(counts[c] / tot * 100).toFixed(0)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function csvEscape(v) {
+  if (v == null) return ''
+  const s = String(v)
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
+
+export default function Selector({ pairs, elements, axes, dft, initialQuery = '' }) {
+  const { navigate, openPair, pinned, togglePin } = useApp()
+  const [text, setText] = useState(initialQuery)
   const [facets, setFacets] = useState(() => new Set()) // class facet toggles
   const [formsOnly, setFormsOnly] = useState(false)
   const [sort, setSort] = useState('relevance')
-  const [open, setOpen] = useState(null)
-  const [pinned, setPinned] = useState(() => new Set())
-  const [comparing, setComparing] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  const togglePin = (e, key) => {
-    e.stopPropagation()
-    setPinned(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : (n.size < 6 && n.add(key)); return n })
-  }
-  const pinnedPairs = useMemo(() => pairs.filter(p => pinned.has(p.pair)), [pairs, pinned])
+  // keep in sync with the URL (#/search?q=...) and mirror typing back into it (debounced, replace)
+  useEffect(() => { setText(t => (t.trim() === initialQuery ? t : initialQuery)) }, [initialQuery])
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) { first.current = false; return }
+    const id = setTimeout(() => navigate('search', text.trim(), true), 250)
+    return () => clearTimeout(id)
+  }, [text, navigate])
 
   const q = useMemo(() => parseQuery(text, elements), [text, elements])
+
+  // hero stats (whole dataset)
+  const hero = useMemo(() => {
+    const nEl = Object.values(elements).filter(e => e.has_data).length
+    const nStable = Object.values(dft || {}).reduce((s, v) => s + (v.n_stable || 0), 0)
+    const c = { isomorphous: 0, partial: 0, immiscible: 0, intermetallic: 0 }
+    pairs.forEach(p => p.truth.forEach(t => { if (c[t] != null) c[t]++ }))
+    return { nEl, nStable, counts: c }
+  }, [pairs, elements, dft])
 
   // stage 1: non-class filter + score
   const base = useMemo(() => {
@@ -193,50 +266,50 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
   }, [results])
 
   const exampleGroups = [
-    { label: 'Element',   items: ['Ti', 'lanthanum', 'uranium', 'Nb'] },
-    { label: 'Pair',      items: ['Al-La', 'Mg-Zn', 'Cu-Ni', 'W-Re'] },
-    { label: 'Behaviour', items: ['immiscible with Fe', 'isomorphous and conductive', 'intermetallic with Ni', 'partial solubility with Cu'] },
-    { label: 'Compounds', items: ['forms compounds, refractory', 'high melting, forms compounds'] },
-    { label: 'Property',  items: ['light and stiff, cheap', 'strong and low density', 'refractory and conductive', 'cheap and lightweight'] },
-    { label: 'Formula',   items: ['AlAg2', 'Fe2Nb', 'Ni3Al', 'Mg2Cu'] },
+    { label: 'Try', items: ['Ti', 'lanthanum', 'Al-La', 'Cu-Ni', 'immiscible with Fe', 'intermetallic with Ni', 'partial solubility with Cu'] },
+    { label: 'More', items: ['forms compounds, refractory', 'light and stiff, cheap', 'strong and low density', 'isomorphous and conductive', 'AlAg2', 'Ni3Al'] },
   ]
 
   const toggleFacet = c => setFacets(prev => { const n = new Set(prev); n.has(c) ? n.delete(c) : n.add(c); return n })
   const activeClasses = new Set([...facets, ...q.classes])
   const anyFilter = text || facets.size || formsOnly
 
-  if (open) {
-    return (
-      <div className="flex flex-col gap-3 fade-up">
-        <button onClick={() => setOpen(null)} className="self-start flex items-center gap-2 text-sm text-[var(--dim)] hover:text-[var(--text)]">
-          <ArrowLeft size={16} /> back to results
-        </button>
-        <PairDetail pair={open} allPairs={pairs} dft={dft} />
-      </div>
-    )
+  const exportCsv = () => {
+    const head = ['pair', 'A', 'B', 'truth', 'pred', ...CLASSES.map(c => 'p_' + c), 'n_stable', 'ground_state', 'min_hull']
+    const lines = [head.join(',')]
+    results.forEach(({ p }) => {
+      const d = dft?.[p.pair]
+      lines.push([p.pair, p.A, p.B, p.truth.join('|'), (p.pred || []).join('|'),
+        ...CLASSES.map(c => p.prob?.[c] ?? ''), d?.n_stable ?? '', d?.ground_state?.formula ?? '', d?.min_hull ?? ''].map(csvEscape).join(','))
+    })
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url
+    a.download = `compass_${(text.trim() || 'all').replace(/[^A-Za-z0-9]+/g, '_').slice(0, 40)}.csv`
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 500)
   }
-
-  if (comparing && pinnedPairs.length) {
-    return <CompareView systems={pinnedPairs} dft={dft} onBack={() => setComparing(false)}
-             onOpen={p => { setComparing(false); setOpen(p) }}
-             onRemove={key => setPinned(prev => { const n = new Set(prev); n.delete(key); return n })} />
+  const copyLink = () => {
+    const h = text.trim() ? `#/search?q=${encodeURIComponent(text.trim())}` : '#/'
+    const url = `${window.location.origin}${window.location.pathname}${h}`
+    navigator.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) })
   }
 
   return (
     <div className="flex flex-col gap-4 pb-16">
       {/* hero */}
-      <div className="card glow hero-grad p-6 flex flex-col gap-3">
-        <div className="flex items-center gap-2 text-[var(--dim)] text-sm">
-          <Sparkles size={15} className="text-[var(--accent)]" /> One-stop binary-alloy explorer
+      <div className="card glow hero-grad p-5 md:p-6 flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-[var(--dim)] text-xs uppercase tracking-[.12em]">
+          <Sparkles size={14} className="text-[var(--accent)]" /> One-stop binary-alloy explorer
         </div>
-        <h2 className="text-2xl md:text-3xl font-extrabold leading-tight">
-          Search <span className="grad-text">970</span> ground-truth systems — get <span className="grad-text">everything</span> in one place
+        <h2 className="text-2xl md:text-[34px] font-extrabold leading-[1.1] tracking-tight max-w-4xl">
+          Search <span className="grad-text">{pairs.length}</span> ground-truth binary systems —
+          phase diagram, descriptors, out-of-fold prediction and DFT in one place
         </h2>
         <div className="relative">
           <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--dim)]" />
           <input autoFocus value={text} onChange={e => setText(e.target.value)}
             placeholder="Element (La / lanthanum) · pair (Al-La) · behaviour (immiscible, forms compounds) · property (light, stiff, cheap) · formula (AlAg2)"
-            className="w-full bg-[var(--input)] border border-[var(--border)] rounded-xl pl-11 pr-10 py-3 text-base focus:outline-none focus:border-sky-500 shadow-sm" />
+            className="w-full bg-[var(--input)] border border-[var(--border)] rounded-xl pl-11 pr-10 py-3 text-base focus:outline-none focus:border-[var(--accent)] shadow-sm" />
           {text && (
             <button onClick={() => setText('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--dim)] hover:text-[var(--text)]">
               <X size={16} />
@@ -244,16 +317,22 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
           )}
         </div>
         <div className="flex flex-col gap-1.5 text-xs">
-          <span className="text-[var(--dim)]">Try any of these — every query type the one-stop search understands:</span>
           {exampleGroups.map(g => (
             <div key={g.label} className="flex flex-wrap items-center gap-1.5">
-              <span className="w-20 shrink-0 text-[10px] uppercase tracking-wide text-[var(--dim)]/70">{g.label}</span>
+              <span className="w-10 shrink-0 text-[10px] uppercase tracking-wide text-[var(--faint)]">{g.label}</span>
               {g.items.map(ex => (
                 <button key={ex} onClick={() => setText(ex)}
-                  className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-[var(--dim)] hover:text-[var(--text)] border border-[var(--border)] transition">{ex}</button>
+                  className="px-2.5 py-1 rounded-full bg-[var(--panel)] hover:bg-[var(--panel2)] text-[var(--dim)] hover:text-[var(--text)] border border-[var(--border)] transition">{ex}</button>
               ))}
             </div>
           ))}
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <StatTile value={pairs.length} label="ground-truth systems" sub="4-class multi-label" grad />
+          <StatTile value={hero.nEl} label="elements with descriptors" />
+          <StatTile value={hero.nStable} label="DFT-stable compounds" sub="MP · OQMD · JARVIS" />
+          <StatTile value={CLASSES.length} label="phase classes" sub="iso · partial · immis · inter" />
+          <ClassDonut counts={hero.counts} />
         </div>
       </div>
 
@@ -266,12 +345,12 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
             <button key={c} onClick={() => toggleFacet(c)} className="facet"
               style={on ? { background: CLASS_COLOR[c] + '26', borderColor: CLASS_COLOR[c], color: CLASS_COLOR[c] } : {}}>
               <span className="w-2 h-2 rounded-full" style={{ background: CLASS_COLOR[c] }} />
-              {CLASS_LABEL[c]} <span className="opacity-70">{classCounts[c]}</span>
+              {CLASS_LABEL[c]} <span className="opacity-70 mono">{classCounts[c]}</span>
             </button>
           )
         })}
         <button onClick={() => setFormsOnly(v => !v)} className="facet"
-          style={formsOnly ? { background: '#34d39926', borderColor: '#34d399', color: '#34d399' } : {}}>
+          style={formsOnly ? { background: 'color-mix(in srgb, var(--accent3) 16%, transparent)', borderColor: 'var(--accent3)', color: 'var(--accent3)' } : {}}>
           <Boxes size={12} /> Forms compounds
         </button>
         <div className="ml-auto flex items-center gap-2">
@@ -283,15 +362,21 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
           <select className="sel" value={sort} onChange={e => setSort(e.target.value)}>
             {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
+          <button onClick={exportCsv} disabled={!results.length} className="pill hover:border-[var(--border-strong)] disabled:opacity-40" title="Download the current results as CSV">
+            <Download size={12} /> CSV
+          </button>
+          <button onClick={copyLink} className="pill hover:border-[var(--border-strong)]" title="Copy a link to this search">
+            {copied ? <Check size={12} /> : <Link2 size={12} />} {copied ? 'Copied' : 'Link'}
+          </button>
         </div>
       </div>
 
       {/* stats */}
       <div className="flex flex-wrap gap-3">
-        <div className="stat"><div className="v grad-text">{results.length}</div><div className="k">systems matched</div></div>
-        <div className="stat"><div className="v">{totalStable.toLocaleString()}</div><div className="k">DFT-stable compounds</div></div>
+        <div className="stat"><div className="v grad-text mono">{results.length}</div><div className="k">systems matched</div></div>
+        <div className="stat"><div className="v mono">{totalStable.toLocaleString()}</div><div className="k">DFT-stable compounds</div></div>
         <div className="stat flex-1 min-w-[220px]">
-          <div className="k mb-1.5">phase-class mix of results</div>
+          <div className="k mb-1.5" style={{ marginTop: 0 }}>phase-class mix of results</div>
           <div className="flex h-3 rounded-full overflow-hidden bg-[var(--cell)]">
             {CLASSES.map(c => {
               const tot = CLASSES.reduce((s, k) => s + resClassDist[k], 0) || 1
@@ -300,7 +385,7 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
             })}
           </div>
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[10px]">
-            {CLASSES.map(c => <span key={c} style={{ color: CLASS_COLOR[c] }}>● {CLASS_LABEL[c]} {resClassDist[c]}</span>)}
+            {CLASSES.map(c => <span key={c} style={{ color: CLASS_COLOR[c] }}>● {CLASS_LABEL[c]} <span className="mono">{resClassDist[c]}</span></span>)}
           </div>
         </div>
       </div>
@@ -308,9 +393,9 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
       {q.formula || q.els.length || q.formsCompounds || formsOnly || Object.keys(q.prefs).length ? (
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="text-[var(--dim)]">Reading your query as:</span>
-          {q.formula && <Chip color="#a5b4fc">compound {q.formula}</Chip>}
-          {q.els.map(e => <Chip key={e} color="#38bdf8">element {e}</Chip>)}
-          {(q.formsCompounds || formsOnly) && <Chip color="#34d399">forms DFT-stable compounds</Chip>}
+          {q.formula && <Chip color="var(--accent2)">compound {q.formula}</Chip>}
+          {q.els.map(e => <Chip key={e} color="var(--accent)">element {e}</Chip>)}
+          {(q.formsCompounds || formsOnly) && <Chip color="var(--accent3)">forms DFT-stable compounds</Chip>}
           {Object.entries(q.prefs).map(([a, d]) => <Chip key={a}>{d} {PROP_SYN[a].lab}</Chip>)}
         </div>
       ) : null}
@@ -322,15 +407,17 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
           const dom = dominantClass(p.truth) || 'partial'
           const isPinned = pinned.has(p.pair)
           return (
-            <div key={p.pair} onClick={() => setOpen(p)} role="button"
-              className="rcard card p-3 pl-4 flex gap-3 text-left fade-up cursor-pointer"
+            <div key={p.pair} onClick={() => openPair(p.pair)} role="button" tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter') openPair(p.pair) }}
+              className="rcard card p-3 pl-4 flex gap-3 text-left fade-up cursor-pointer group"
               style={{ animationDelay: `${Math.min(i, 12) * 18}ms` }}>
               <span className="stripe" style={{ background: CLASS_COLOR[dom] }} />
-              <button onClick={e => togglePin(e, p.pair)} title={isPinned ? 'Unpin' : 'Pin to compare'}
+              <button onClick={e => { e.stopPropagation(); togglePin(p.pair) }} title={isPinned ? 'Unpin' : 'Pin to compare'}
                 className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition"
                 style={isPinned ? { background: 'var(--accent)', color: '#0b1020' } : { background: 'var(--panel2)', color: 'var(--dim)' }}>
                 {isPinned ? <Check size={13} /> : <Pin size={12} />}
               </button>
+              <span className="absolute bottom-2 right-2 text-[10px] text-[var(--accent)] opacity-0 group-hover:opacity-100 transition flex items-center gap-0.5">open <ArrowUpRight size={11} /></span>
               <img src={`./phase/${p.phase_img}`} alt={p.pair} loading="lazy"
                 className="w-24 h-24 object-contain bg-white rounded shrink-0" />
               <div className="min-w-0 flex-1">
@@ -341,7 +428,7 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
                   ))}
                 </div>
                 <ProbBar prob={p.prob} />
-                {p.pred?.length > 0 && <div className="text-[10px] text-[var(--dim)] mt-1">MAGPIE → {p.pred.map(c => CLASS_LABEL[c].split(' ')[0]).join(', ')}</div>}
+                {p.pred?.length > 0 && <div className="text-[10px] text-[var(--dim)] mt-1">MAGPIE (out-of-fold) → {p.pred.map(c => CLASS_LABEL[c].split(' ')[0]).join(', ')}</div>}
                 <DftBadges d={d} />
                 {reasons?.length > 0 && <div className="text-[11px] text-[var(--dim)] leading-snug mt-1">{reasons.join(' · ')}</div>}
               </div>
@@ -350,107 +437,18 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
         })}
       </div>
 
-      {results.length > 90 && <div className="text-xs text-[var(--dim)] text-center">showing first 90 of {results.length} — refine with the search box or facets above</div>}
+      {results.length > 90 && <div className="text-xs text-[var(--dim)] text-center">showing first 90 of {results.length} — refine with the search box or facets above, or export all as CSV</div>}
       {results.length === 0 && (
         <div className="card p-8 text-center text-[var(--dim)] text-sm">
           <Atom className="mx-auto mb-2 opacity-50" /> Nothing matched.
           Try an element (La), a pair (Al-La), a behaviour (immiscible / forms compounds), or a property (light, stiff, cheap).
         </div>
       )}
-
-      {/* sticky compare tray */}
-      {pinnedPairs.length > 0 && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 card glow px-3 py-2 flex items-center gap-2 fade-up"
-          style={{ background: 'var(--panel)' }}>
-          <Pin size={14} className="text-[var(--accent)]" />
-          <div className="flex flex-wrap gap-1 max-w-[46vw]">
-            {pinnedPairs.map(p => (
-              <span key={p.pair} className="badge" style={{ background: 'var(--panel2)', color: 'var(--text)' }}>
-                {p.pair}
-                <button onClick={() => setPinned(prev => { const n = new Set(prev); n.delete(p.pair); return n })} className="text-[var(--dim)] hover:text-[var(--text)]"><X size={11} /></button>
-              </span>
-            ))}
-          </div>
-          <button onClick={() => setComparing(true)} disabled={pinnedPairs.length < 2}
-            className="ml-1 px-3 py-1.5 rounded-lg text-sm font-medium chip-grad disabled:opacity-40 flex items-center gap-1.5">
-            <GitCompare size={14} /> Compare {pinnedPairs.length}
-          </button>
-          <button onClick={() => setPinned(new Set())} title="Clear all" className="text-[var(--dim)] hover:text-[var(--text)]"><X size={15} /></button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ---- side-by-side comparison of pinned systems ----
-function CompareView({ systems, dft, onBack, onOpen, onRemove }) {
-  const rows = [
-    { k: 'thumb', label: '' },
-    { k: 'truth', label: 'Ground-truth class' },
-    { k: 'pred', label: 'MAGPIE prediction' },
-    ...CLASSES.map(c => ({ k: 'prob:' + c, label: `P(${CLASS_LABEL[c]})`, cls: c })),
-    { k: 'n_stable', label: 'DFT-stable compounds' },
-    { k: 'ground', label: 'Ground state' },
-    { k: 'hull', label: 'Min hull dist (eV)' },
-    { k: 'young', label: 'Elastic modulus (GPa)' },
-    { k: 'sources', label: 'DFT sources' },
-    { k: 'density', label: 'Density range (g/cc)' },
-    { k: 'mp', label: 'Melting point range (K)' },
-    { k: 'price', label: 'Price range ($/kg)' },
-  ]
-  const cell = (p, k) => {
-    const d = dft?.[p.pair]
-    const rng = a => p.props?.[a] ? `${p.props[a].min} – ${p.props[a].max}` : '—'
-    if (k === 'thumb') return <img src={`./phase/${p.phase_img}`} className="w-full h-20 object-contain bg-white rounded" loading="lazy" />
-    if (k === 'truth') return <div className="flex flex-wrap gap-1">{p.truth.map(c => <span key={c} className="px-1.5 py-0.5 rounded text-[10px]" style={{ background: CLASS_COLOR[c] + '33', color: CLASS_COLOR[c] }}>{CLASS_LABEL[c]}</span>)}</div>
-    if (k === 'pred') return <span className="text-[var(--dim)]">{p.pred?.map(c => CLASS_LABEL[c].split(' ')[0]).join(', ') || '—'}</span>
-    if (k.startsWith('prob:')) { const c = k.slice(5); const v = p.prob?.[c] ?? 0; return (
-      <div className="flex items-center gap-1.5"><div className="flex-1 h-1.5 rounded bg-[var(--panel2)] overflow-hidden"><div className="h-full" style={{ width: `${v * 100}%`, background: CLASS_COLOR[c] }} /></div><span className="font-mono text-[10px] w-7 text-right">{v.toFixed(2)}</span></div>) }
-    if (k === 'n_stable') return d?.n_stable ?? '—'
-    if (k === 'ground') return d?.ground_state ? `${d.ground_state.formula} (${d.ground_state.Ef})` : '—'
-    if (k === 'hull') return d?.min_hull != null ? d.min_hull : '—'
-    if (k === 'young') return d?.elastic?.young_GPa != null ? Math.round(d.elastic.young_GPa) : '—'
-    if (k === 'sources') return d?.sources?.join(', ') || '—'
-    if (k === 'density') return rng('density')
-    if (k === 'mp') return rng('JARVIS_mp')
-    if (k === 'price') return rng('Price_USD_kg')
-    return '—'
-  }
-  return (
-    <div className="flex flex-col gap-3 fade-up">
-      <div className="flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center gap-2 text-sm text-[var(--dim)] hover:text-[var(--text)]"><ArrowLeft size={16} /> back to results</button>
-        <span className="text-sm text-[var(--dim)]">Comparing {systems.length} systems</span>
-      </div>
-      <div className="card glow overflow-x-auto">
-        <table className="w-full text-xs border-collapse">
-          <tbody>
-            {rows.map(r => (
-              <tr key={r.k} className="border-b border-[var(--border)]">
-                <td className="px-3 py-2 text-[var(--dim)] font-medium sticky left-0 bg-[var(--panel)] min-w-[150px]" style={r.cls ? { color: CLASS_COLOR[r.cls] } : {}}>{r.label}</td>
-                {systems.map(p => (
-                  <td key={p.pair} className="px-3 py-2 align-middle min-w-[150px]">
-                    {r.k === 'thumb' ? (
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <button onClick={() => onOpen(p)} className="font-semibold hover:text-[var(--accent)]">{p.pair}</button>
-                          <button onClick={() => onRemove(p.pair)} className="text-[var(--dim)] hover:text-[var(--text)]"><X size={13} /></button>
-                        </div>
-                        {cell(p, r.k)}
-                      </div>
-                    ) : cell(p, r.k)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="text-[10px] text-[var(--dim)]">Property ranges are element bounds across the binary; DFT values are source-tagged, never averaged. Click a system name for its full page.</div>
     </div>
   )
 }
 
 function Chip({ children, color }) {
-  return <span className="px-2 py-0.5 rounded-full text-[11px]" style={{ background: (color || '#64748b') + '26', color: color || '#cbd5e1' }}>{children}</span>
+  const c = color || 'var(--dim)'
+  return <span className="px-2 py-0.5 rounded-full text-[11px]" style={{ background: `color-mix(in srgb, ${c} 15%, transparent)`, color: c }}>{children}</span>
 }
