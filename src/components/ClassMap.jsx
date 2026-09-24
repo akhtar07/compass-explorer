@@ -65,7 +65,7 @@ export default function ClassMap({ pairs, dft }) {
           <label className="text-xs text-[var(--dim)]">Colour by</label>
           <select value={colorBy} onChange={e => setColorBy(e.target.value)}
             className="bg-[var(--input)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
-            <option value="class">Hand-verified class</option>
+            <option value="class">Ground-truth class</option>
             <option value="stable">DFT-stable compound count</option>
           </select>
         </div>

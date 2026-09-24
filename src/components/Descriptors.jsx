@@ -33,17 +33,19 @@ const D = [
     desc:'Absolute difference in elemental bond order between A and B.' },
   { id:'D13', name:'Periodic-group distance', noimg:true,
     formula:'D₁₃ = |G_A − G_B|',
-    desc:'Absolute difference in periodic-table group (column) number between A and B — a cheap, DFT-free measure of valence-count separation. Added on top of D₁–D₁₂; raised macro-F1 0.750 → 0.788.' },
+    desc:'Absolute difference in periodic-table group (column) number between A and B — a cheap, DFT-free measure of valence-count separation. Part of COMPASS-9; it is the root split of the immiscible and intermetallic decision rules (see "Why this classification" on any system page).' },
 ]
 
 export default function Descriptors() {
   return (
     <div>
       <p className="text-[var(--dim)] text-sm mb-4 max-w-3xl">
-        COMPASS uses thirteen physically-motivated descriptors per binary pair (A, B). D₁–D₈ are
-        orbital/Hume–Rothery descriptors from Harrison tight-binding theory and free-atom data;
-        D₉–D₁₂ are first-principles bonding descriptors from DFT + LOBSTER (|ICOHP| and ICOBI);
-        D₁₃ is a cheap periodic-group descriptor.
+        COMPASS describes each binary pair (A, B) with physically-motivated descriptors. The benchmarked
+        set is <b>COMPASS-9</b> = D₁–D₈ + D₁₃: D₁–D₈ are orbital/Hume–Rothery descriptors from Harrison
+        tight-binding theory and free-atom data, and D₁₃ is a cheap periodic-group descriptor; none needs DFT.
+        D₉–D₁₂ are optional first-principles bonding descriptors from DFT + LOBSTER (|ICOHP| and ICOBI),
+        available for the subset of systems whose elements have LOBSTER data. See the Benchmark tab for
+        how COMPASS-9 compares with MAGPIE and the classical rules on the 970 ground-truth systems.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {D.map(d => (

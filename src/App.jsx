@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Grid3x3, BookOpen, ScatterChart, UploadCloud, Compass, Sun, Moon, Search, LineChart, Database } from 'lucide-react'
+import { Grid3x3, BookOpen, ScatterChart, UploadCloud, Compass, Sun, Moon, Search, LineChart, BarChart3 } from 'lucide-react'
 import PeriodicTable from './components/PeriodicTable'
 import Descriptors from './components/Descriptors'
 import ClassMap from './components/ClassMap'
 import Upload from './components/Upload'
 import Selector from './components/Selector'
 import AshbyChart from './components/AshbyChart'
+import Benchmark from './components/Benchmark'
 
 const TABS = [
   { id: 'select', label: 'Search', icon: Search },
@@ -13,6 +14,7 @@ const TABS = [
   { id: 'map', label: 'Classification Map', icon: ScatterChart },
   { id: 'ashby', label: 'Ashby Chart', icon: LineChart },
   { id: 'desc', label: 'Descriptors', icon: BookOpen },
+  { id: 'bench', label: 'Benchmark', icon: BarChart3 },
   { id: 'upload', label: 'Upload', icon: UploadCloud },
 ]
 
@@ -53,7 +55,7 @@ export default function App() {
           <div>
             <div className="font-extrabold text-xl leading-tight grad-text">COMPASS</div>
             <div className="text-[11px] text-[var(--dim)] leading-tight">
-              One-stop binary-alloy explorer · 970 hand-verified systems · {dft ? `${Object.keys(dft).length} linked to MP / OQMD / JARVIS DFT` : 'multi-source DFT'}
+              One-stop binary-alloy explorer · 970 ground-truth systems · {dft ? `${Object.keys(dft).length} linked to MP / OQMD / JARVIS DFT` : 'multi-source DFT'}
             </div>
           </div>
           <nav className="ml-auto flex gap-1">
@@ -84,6 +86,7 @@ export default function App() {
             {tab === 'select' && <Selector pairs={pairs} elements={elements} axes={axes} dft={dft} onTab={setTab} />}
             {tab === 'pt' && <PeriodicTable elements={elements} pairs={pairs} groups={groups} labels={labels} dft={dft} />}
             {tab === 'desc' && <Descriptors />}
+            {tab === 'bench' && <Benchmark />}
             {tab === 'map' && <ClassMap pairs={pairs} dft={dft} />}
             {tab === 'ashby' && <AshbyChart elements={elements} axes={axes} pairs={pairs} dft={dft} />}
             {tab === 'upload' && <Upload />}
@@ -92,9 +95,10 @@ export default function App() {
       </main>
 
       <footer className="max-w-[1400px] mx-auto px-5 py-6 text-xs text-[var(--dim)] border-t border-[var(--border)] mt-8">
-        <span className="grad-text font-semibold">COMPASS</span> · 970 hand-verified binary phase classifications ·
-        interpretable orbital/Hume-Rothery descriptors (D₁–D₁₃) · {nStable.toLocaleString()} DFT-stable compounds linked from
-        Materials Project, OQMD &amp; JARVIS · predictions out-of-fold (XGBoost / MAGPIE) · Built with React + Vite.
+        <span className="grad-text font-semibold">COMPASS</span> · 970 ground-truth binary phase classifications
+        (isomorphous / partial / immiscible / intermetallic) · orbital/Hume-Rothery descriptors COMPASS-9 (D₁–D₈ + D₁₃), optional
+        bonding descriptors D₉–D₁₂ · {nStable.toLocaleString()} DFT-stable compounds linked from Materials Project, OQMD &amp; JARVIS ·
+        predictions out-of-fold (XGBoost / MAGPIE) · benchmark numbers from the paper's leave-one-element-out study · Built with React + Vite.
       </footer>
     </div>
   )

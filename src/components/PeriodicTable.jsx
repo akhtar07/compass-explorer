@@ -150,7 +150,7 @@ export default function PeriodicTable({ elements, pairs, groups, labels, dft }) 
       )}
       {mode === 'classify' && selA && !selB && (
         <div className="card p-4 text-[var(--dim)] text-sm">
-          Coloured cells are elements with a hand-verified <b>{selA}</b>–X phase diagram in the 610-pair set.
+          Coloured cells are elements with a ground-truth <b>{selA}</b>–X phase diagram in the 970-pair set.
           Grey = no diagram for that combination. Click a coloured element to open its phase diagram, descriptors and prediction.
         </div>
       )}

@@ -1,0 +1,578 @@
+{
+ "generated": {
+  "date": "2026-09-24",
+  "script": "build_benchmark.py",
+  "source": "data/processed/ml/adv/adv_summary.json"
+ },
+ "protocol": "One-vs-rest multi-label classification over the 970 ground-truth binary systems; leave-one-element-out cross-validation (69 folds); macro-F1 over the four classes isomorphous / partial / immiscible / intermetallic; 95 % CI = element-cluster bootstrap.",
+ "classes": [
+  "isomorphous",
+  "partial",
+  "immiscible",
+  "intermetallic"
+ ],
+ "n_pairs": 970,
+ "ladder": [
+  {
+   "key": "Hume-Rothery (rule)",
+   "label": "Hume-Rothery rule",
+   "group": "baseline",
+   "n": 970,
+   "macro_f1": 0.383,
+   "ci95": null,
+   "per_class_f1": {
+    "isomorphous": 0.46,
+    "partial": 0.0,
+    "immiscible": 0.471,
+    "intermetallic": 0.601
+   },
+   "ece": 0.309,
+   "note": "fixed rule; never predicts partial"
+  },
+  {
+   "key": "xgb|e/a (VEC)",
+   "label": "e/a (VEC)",
+   "group": "baseline",
+   "n": 970,
+   "macro_f1": 0.481,
+   "ci95": [
+    0.413,
+    0.542
+   ],
+   "per_class_f1": {
+    "isomorphous": 0.486,
+    "partial": 0.343,
+    "immiscible": 0.287,
+    "intermetallic": 0.807
+   },
+   "ece": 0.066,
+   "note": null
+  },
+  {
+   "key": "xgb|Miedema",
+   "label": "Miedema",
+   "group": "baseline",
+   "n": 931,
+   "macro_f1": 0.673,
+   "ci95": [
+    0.637,
+    0.705
+   ],
+   "per_class_f1": {
+    "isomorphous": 0.49,
+    "partial": 0.535,
+    "immiscible": 0.748,
+    "intermetallic": 0.917
+   },
+   "ece": 0.071,
+   "note": "Miedema parameters cover 931 of the 970 pairs"
+  },
+  {
+   "key": "xgb|COMPASS-9",
+   "label": "COMPASS-9",
+   "group": "compass",
+   "n": 970,
+   "macro_f1": 0.697,
+   "ci95": [
+    0.65,
+    0.732
+   ],
+   "per_class_f1": {
+    "isomorphous": 0.745,
+    "partial": 0.55,
+    "immiscible": 0.618,
+    "intermetallic": 0.873
+   },
+   "ece": 0.073,
+   "note": null
+  },
+  {
+   "key": "xgb|MAGPIE",
+   "label": "MAGPIE",
+   "group": "magpie",
+   "n": 970,
+   "macro_f1": 0.777,
+   "ci95": [
+    0.736,
+    0.812
+   ],
+   "per_class_f1": {
+    "isomorphous": 0.795,
+    "partial": 0.64,
+    "immiscible": 0.763,
+    "intermetallic": 0.91
+   },
+   "ece": 0.052,
+   "note": null
+  },
+  {
+   "key": "xgb|COMPASS-9+hull",
+   "label": "COMPASS-9 + DFT-hull",
+   "group": "compass",
+   "n": 970,
+   "macro_f1": 0.8,
+   "ci95": [
+    0.765,
+    0.828
+   ],
+   "per_class_f1": {
+    "isomorphous": 0.789,
+    "partial": 0.647,
+    "immiscible": 0.827,
+    "intermetallic": 0.936
+   },
+   "ece": 0.051,
+   "note": null
+  },
+  {
+   "key": "xgb|MAGPIE+DFT-hull",
+   "label": "MAGPIE + DFT-hull",
+   "group": "magpie",
+   "n": 970,
+   "macro_f1": 0.812,
+   "ci95": [
+    0.775,
+    0.842
+   ],
+   "per_class_f1": {
+    "isomorphous": 0.795,
+    "partial": 0.665,
+    "immiscible": 0.837,
+    "intermetallic": 0.952
+   },
+   "ece": 0.047,
+   "note": null
+  }
+ ],
+ "feature_sets": [
+  {
+   "key": "COMPASS-9",
+   "label": "COMPASS-9"
+  },
+  {
+   "key": "COMPASS-9+hull",
+   "label": "COMPASS-9 + DFT-hull"
+  },
+  {
+   "key": "MAGPIE",
+   "label": "MAGPIE"
+  },
+  {
+   "key": "MAGPIE+DFT-hull",
+   "label": "MAGPIE + DFT-hull"
+  }
+ ],
+ "learners": [
+  {
+   "key": "xgb",
+   "label": "XGBoost",
+   "cells": {
+    "COMPASS-9": {
+     "macro_f1": 0.697,
+     "ci95": [
+      0.65,
+      0.732
+     ],
+     "ece": 0.073
+    },
+    "COMPASS-9+hull": {
+     "macro_f1": 0.8,
+     "ci95": [
+      0.765,
+      0.828
+     ],
+     "ece": 0.051
+    },
+    "MAGPIE": {
+     "macro_f1": 0.777,
+     "ci95": [
+      0.736,
+      0.812
+     ],
+     "ece": 0.052
+    },
+    "MAGPIE+DFT-hull": {
+     "macro_f1": 0.812,
+     "ci95": [
+      0.775,
+      0.842
+     ],
+     "ece": 0.047
+    }
+   }
+  },
+  {
+   "key": "optuna",
+   "label": "XGBoost, nested Optuna",
+   "cells": {
+    "COMPASS-9": {
+     "macro_f1": 0.688,
+     "ci95": [
+      0.641,
+      0.724
+     ],
+     "ece": 0.065
+    },
+    "COMPASS-9+hull": {
+     "macro_f1": 0.798,
+     "ci95": [
+      0.762,
+      0.829
+     ],
+     "ece": 0.041
+    },
+    "MAGPIE": {
+     "macro_f1": 0.77,
+     "ci95": [
+      0.723,
+      0.806
+     ],
+     "ece": 0.051
+    },
+    "MAGPIE+DFT-hull": {
+     "macro_f1": 0.813,
+     "ci95": [
+      0.777,
+      0.843
+     ],
+     "ece": 0.048
+    }
+   }
+  },
+  {
+   "key": "chain",
+   "label": "Classifier chains (ECC)",
+   "cells": {
+    "COMPASS-9": {
+     "macro_f1": 0.71,
+     "ci95": [
+      0.665,
+      0.748
+     ],
+     "ece": 0.089
+    },
+    "COMPASS-9+hull": {
+     "macro_f1": 0.799,
+     "ci95": [
+      0.759,
+      0.832
+     ],
+     "ece": 0.051
+    },
+    "MAGPIE": {
+     "macro_f1": 0.782,
+     "ci95": [
+      0.739,
+      0.817
+     ],
+     "ece": 0.062
+    },
+    "MAGPIE+DFT-hull": {
+     "macro_f1": 0.826,
+     "ci95": [
+      0.789,
+      0.857
+     ],
+     "ece": 0.049
+    }
+   }
+  },
+  {
+   "key": "mlp",
+   "label": "Joint MLP",
+   "cells": {
+    "COMPASS-9": {
+     "macro_f1": 0.643,
+     "ci95": [
+      0.586,
+      0.687
+     ],
+     "ece": 0.028
+    },
+    "COMPASS-9+hull": {
+     "macro_f1": 0.724,
+     "ci95": [
+      0.675,
+      0.766
+     ],
+     "ece": 0.021
+    },
+    "MAGPIE": {
+     "macro_f1": 0.706,
+     "ci95": [
+      0.665,
+      0.745
+     ],
+     "ece": 0.037
+    },
+    "MAGPIE+DFT-hull": {
+     "macro_f1": 0.764,
+     "ci95": [
+      0.732,
+      0.794
+     ],
+     "ece": 0.029
+    }
+   }
+  },
+  {
+   "key": "ebm",
+   "label": "EBM (GA\u00b2M)",
+   "cells": {
+    "COMPASS-9": {
+     "macro_f1": 0.695,
+     "ci95": [
+      0.648,
+      0.732
+     ],
+     "ece": 0.039
+    },
+    "COMPASS-9+hull": {
+     "macro_f1": 0.78,
+     "ci95": [
+      0.739,
+      0.814
+     ],
+     "ece": 0.03
+    }
+   }
+  },
+  {
+   "key": "tabpfn",
+   "label": "TabPFN v2",
+   "cells": {
+    "COMPASS-9": {
+     "macro_f1": 0.716,
+     "ci95": [
+      0.659,
+      0.762
+     ],
+     "ece": 0.027
+    },
+    "COMPASS-9+hull": {
+     "macro_f1": 0.807,
+     "ci95": [
+      0.762,
+      0.842
+     ],
+     "ece": 0.02
+    },
+    "MAGPIE": {
+     "macro_f1": 0.779,
+     "ci95": [
+      0.731,
+      0.816
+     ],
+     "ece": 0.023
+    },
+    "MAGPIE+DFT-hull": {
+     "macro_f1": 0.818,
+     "ci95": [
+      0.78,
+      0.849
+     ],
+     "ece": 0.018
+    }
+   }
+  }
+ ],
+ "best_calibrated": {
+  "learner": "tabpfn",
+  "label": "TabPFN v2",
+  "ece": 0.018
+ },
+ "paired": [
+  {
+   "name": "COMPASS-9 -> MAGPIE",
+   "delta": 0.081,
+   "ci95": [
+    0.048,
+    0.116
+   ],
+   "p_le_0": 0.0,
+   "n": 970
+  },
+  {
+   "name": "MAGPIE -> COMPASS-9+hull",
+   "delta": 0.022,
+   "ci95": [
+    -0.005,
+    0.047
+   ],
+   "p_le_0": 0.057,
+   "n": 970
+  },
+  {
+   "name": "COMPASS-9+hull -> MAGPIE+DFT-hull",
+   "delta": 0.012,
+   "ci95": [
+    -0.012,
+    0.04
+   ],
+   "p_le_0": 0.162,
+   "n": 970
+  },
+  {
+   "name": "MAGPIE -> MAGPIE+DFT-hull",
+   "delta": 0.035,
+   "ci95": [
+    0.018,
+    0.053
+   ],
+   "p_le_0": 0.0,
+   "n": 970
+  },
+  {
+   "name": "COMPASS-9 -> COMPASS-9+hull",
+   "delta": 0.103,
+   "ci95": [
+    0.08,
+    0.127
+   ],
+   "p_le_0": 0.0,
+   "n": 970
+  }
+ ],
+ "hull_tie_by_learner": [
+  {
+   "learner": "xgb",
+   "label": "XGBoost",
+   "compass_hull": 0.8,
+   "magpie_hull": 0.812,
+   "gap": -0.012
+  },
+  {
+   "learner": "optuna",
+   "label": "XGBoost, nested Optuna",
+   "compass_hull": 0.798,
+   "magpie_hull": 0.813,
+   "gap": -0.015
+  },
+  {
+   "learner": "chain",
+   "label": "Classifier chains (ECC)",
+   "compass_hull": 0.799,
+   "magpie_hull": 0.826,
+   "gap": -0.027
+  },
+  {
+   "learner": "mlp",
+   "label": "Joint MLP",
+   "compass_hull": 0.724,
+   "magpie_hull": 0.764,
+   "gap": -0.041
+  },
+  {
+   "learner": "tabpfn",
+   "label": "TabPFN v2",
+   "compass_hull": 0.807,
+   "magpie_hull": 0.818,
+   "gap": -0.011
+  }
+ ],
+ "lofo": {
+  "e/a (VEC)": {
+   "mean_lofo": 0.409,
+   "mean_loeo_same_pairs": 0.433
+  },
+  "Miedema": {
+   "mean_lofo": 0.624,
+   "mean_loeo_same_pairs": 0.644
+  },
+  "COMPASS-9": {
+   "mean_lofo": 0.591,
+   "mean_loeo_same_pairs": 0.648
+  },
+  "MAGPIE": {
+   "mean_lofo": 0.615,
+   "mean_loeo_same_pairs": 0.699
+  },
+  "COMPASS-9+hull": {
+   "mean_lofo": 0.678,
+   "mean_loeo_same_pairs": 0.725
+  },
+  "MAGPIE+DFT-hull": {
+   "mean_lofo": 0.669,
+   "mean_loeo_same_pairs": 0.715
+  },
+  "MAGPIE+COMPASS-9": {
+   "mean_lofo": 0.623,
+   "mean_loeo_same_pairs": 0.684
+  },
+  "mat2vec (MatScholar)": {
+   "mean_lofo": 0.434,
+   "mean_loeo_same_pairs": 0.452
+  },
+  "MEGNet embedding": {
+   "mean_lofo": 0.56,
+   "mean_loeo_same_pairs": 0.639
+  },
+  "tabpfn|COMPASS-9": {
+   "mean_lofo": 0.579,
+   "mean_loeo_same_pairs": 0.668
+  },
+  "tabpfn|MAGPIE": {
+   "mean_lofo": 0.596,
+   "mean_loeo_same_pairs": 0.68
+  },
+  "tabpfn|COMPASS-9+hull": {
+   "mean_lofo": 0.7,
+   "mean_loeo_same_pairs": 0.718
+  },
+  "tabpfn|MAGPIE+DFT-hull": {
+   "mean_lofo": 0.668,
+   "mean_loeo_same_pairs": 0.72
+  }
+ },
+ "yscramble": {
+  "COMPASS-9": {
+   "mean": 0.274,
+   "max": 0.293
+  },
+  "MAGPIE": {
+   "mean": 0.271,
+   "max": 0.307
+  }
+ },
+ "label_noise": {
+  "n_flags": 33,
+  "n_pairs": 30,
+  "members": 4,
+  "thresholds": [
+   0.05,
+   0.95
+  ]
+ },
+ "conformal": {
+  "xgb|COMPASS-9": {
+   "alpha": 0.1,
+   "coverage": {
+    "isomorphous": 0.904,
+    "partial": 0.902,
+    "immiscible": 0.902,
+    "intermetallic": 0.902
+   },
+   "joint_all4_covered": 0.714
+  },
+  "xgb|MAGPIE+DFT-hull": {
+   "alpha": 0.1,
+   "coverage": {
+    "isomorphous": 0.906,
+    "partial": 0.9,
+    "immiscible": 0.903,
+    "intermetallic": 0.901
+   },
+   "joint_all4_covered": 0.722
+  },
+  "tabpfn|MAGPIE+DFT-hull": {
+   "alpha": 0.1,
+   "coverage": {
+    "isomorphous": 0.901,
+    "partial": 0.898,
+    "immiscible": 0.902,
+    "intermetallic": 0.902
+   },
+   "joint_all4_covered": 0.721
+  }
+ }
+}

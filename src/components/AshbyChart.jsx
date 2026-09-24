@@ -10,7 +10,7 @@ ChartJS.register(LinearScale, LogarithmicScale, PointElement, Tooltip, Legend)
 //  - Elements: the 48 metallic elements (measurable constants / MAGPIE-JARVIS tables).
 //  - Binary systems (DFT): every 970 system positioned by its EXTRACTED multi-source
 //    DFT properties (elastic moduli, formation energy, hull distance, stable-compound
-//    count) and alloy property means, coloured by hand-verified class, click-through.
+//    count) and alloy property means, coloured by ground-truth class, click-through.
 const SYS_AXES = {
   density:            { label: "Density (mean)", unit: 'g/cc', log: false, get: (p) => p.props?.density?.mean },
   youngs_modulus_GPa: { label: "Young's modulus (alloy mean)", unit: 'GPa', log: false, get: (p) => p.props?.youngs_modulus_GPa?.mean },

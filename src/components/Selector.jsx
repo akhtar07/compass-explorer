@@ -7,7 +7,7 @@ import PairDetail from './PairDetail'
 // ("La" / "lanthanum"), a pair ("Al-La"), a phase behaviour ("immiscible",
 // "forms compounds"), a property need ("light and stiff, cheap"), or a compound
 // formula ("AlAg2"). Layer that with click-to-toggle phase facets, a "forms
-// compounds" filter and live sorting. Results are rich animated cards (verified
+// compounds" filter and live sorting. Results are rich animated cards (ground-truth
 // class + MAGPIE probabilities + multi-source DFT badges + thumbnail); click one
 // for the full PairDetail. Deterministic parser — no API key required.
 
@@ -230,7 +230,7 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
           <Sparkles size={15} className="text-[var(--accent)]" /> One-stop binary-alloy explorer
         </div>
         <h2 className="text-2xl md:text-3xl font-extrabold leading-tight">
-          Search <span className="grad-text">970</span> verified systems — get <span className="grad-text">everything</span> in one place
+          Search <span className="grad-text">970</span> ground-truth systems — get <span className="grad-text">everything</span> in one place
         </h2>
         <div className="relative">
           <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--dim)]" />
@@ -386,7 +386,7 @@ export default function Selector({ pairs, elements, axes, dft, onTab }) {
 function CompareView({ systems, dft, onBack, onOpen, onRemove }) {
   const rows = [
     { k: 'thumb', label: '' },
-    { k: 'truth', label: 'Verified class' },
+    { k: 'truth', label: 'Ground-truth class' },
     { k: 'pred', label: 'MAGPIE prediction' },
     ...CLASSES.map(c => ({ k: 'prob:' + c, label: `P(${CLASS_LABEL[c]})`, cls: c })),
     { k: 'n_stable', label: 'DFT-stable compounds' },

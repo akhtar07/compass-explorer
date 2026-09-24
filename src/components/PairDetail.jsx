@@ -75,16 +75,16 @@ export default function PairDetail({ pair, allPairs, dft }) {
             className="w-full object-contain"
             style={invert ? { filter: 'invert(1) hue-rotate(180deg)', mixBlendMode: 'screen' } : {}} />
         </div>
-        <div className="text-[10px] text-slate-500 mt-1">Hand-verified CALPHAD phase diagram (rendered to 25 °C).</div>
+        <div className="text-[10px] text-slate-500 mt-1">Ground-truth CALPHAD phase diagram (rendered to 25 °C).</div>
       </div>
 
       {/* prediction */}
       <div className="card glow p-4">
         <h3 className="text-sm uppercase tracking-wide text-[var(--dim)] mb-3">Phase behaviour</h3>
-        <Block title="Hand-verified label(s)">
+        <Block title="Ground-truth label(s)">
           {pair.truth.length ? pair.truth.map(c => <Chip key={c} c={c} solid />) : <Dash />}
         </Block>
-        <Block title="COMPASS-13 prediction">
+        <Block title="Model prediction (MAGPIE, out-of-fold)">
           {pair.pred.length ? pair.pred.map(c => <Chip key={c} c={c} />) : <span className="text-slate-500 text-sm">none above threshold</span>}
         </Block>
         <div className="text-xs text-slate-500 mb-1 mt-3">Per-class probability</div>
@@ -103,14 +103,14 @@ export default function PairDetail({ pair, allPairs, dft }) {
       <div className="card glow p-4">
         <h3 className="text-sm uppercase tracking-wide text-[var(--dim)] mb-1">Descriptors D1–D13</h3>
         <div className="text-[10px] text-slate-500 mb-2">
-          normalized across the 610-pair set · see the Descriptors tab for definitions
+          normalized across the 970-pair set · COMPASS-9 = D1–D8 + D13; D9–D12 optional bonding · see the Descriptors tab
           {pair.D?.D1 != null && pair.D?.D9 == null &&
             <span className="text-amber-500/80"> · D9–D12 (DFT/LOBSTER bonding) not available for this added system</span>}
         </div>
         {pair.D?.D1 == null ? (
           <div className="text-xs text-[var(--dim)] py-8 text-center leading-relaxed">
             COMPASS descriptors pending for this newly added system.<br/>
-            Phase classification is hand-verified; the prediction shown is the composition (MAGPIE) model.
+            Phase classification is ground truth; the prediction shown is the composition (MAGPIE) model.
           </div>
         ) : (
         <Radar data={radar} options={{
@@ -237,7 +237,7 @@ function InterpPanel({ pair, interp, ranges }) {
         </div>
       </div>
       <div className="text-[10px] text-[var(--dim)] mt-3">
-        Derived from explicit decision-tree rules + TreeSHAP over 970 hand-verified systems (interpretable COMPASS descriptors, no DFT). Class-level explanation, not a per-system causal claim.
+        Derived from explicit decision-tree rules + TreeSHAP over 970 ground-truth systems (COMPASS-9 descriptors, no DFT input). Class-level explanation, not a per-system causal claim.
       </div>
     </div>
   )
